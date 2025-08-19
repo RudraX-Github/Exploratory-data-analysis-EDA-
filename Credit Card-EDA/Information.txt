@@ -1,3 +1,10 @@
+Summary
+
+This EDA (Exploratory Data Analysis) project focuses on analyzing credit card data to uncover patterns, trends, and insights related to customer behavior and credit card usage. The analysis includes data cleaning, visualization, and statistical exploration to identify key features, detect anomalies, and understand relationships between variables. The goal is to provide actionable insights that can help improve credit risk assessment, customer segmentation, and business decision-making.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 Business Goal & Problem Definition
 
 This project´s goal is doing an exploratory data analysis (EDA) in the Credit Card Industry to help the company with proactive offers and services to the customers, gain market share and minimize customer churn. The goal is to analyze the data set to summarize its main characteristics using several different visual methods, primarily for seeing what the data can tell us.
@@ -22,8 +29,3 @@ Platinum clients:
 They represent 38% of our customers, are in average 43 Years Old, have an average of 140k Limit and their Spend Amount grew 33% from 2004 to 2006, from 37.679M to 50.044M. The average spends per client in 2006 is 1.564M.  
 The Payment Amount in 2006 is 54.410M, meaning it represents 109% of Spend Amount, what probably means they´re good payers as well, so we should consider increasing their Limits, but not so much as for the Gold clients. Their main jobs are Normal Salary (41%), followed by Government and Salaried Pvt, both with 17% each, indicating it´s a group that can oscillate a bit in terms of job stability and salary. Their main spend are Transportation Tickets (21%), Petro (13%) and Food (12%). This niche represents the one with the highest spends per client, plus they have some salary stability and are good payers, so they really need to be treated with special attention as premium clients.  
 The company strategy here needs to be in retaining them, investing in relationship, offering products they want and maybe increasing their Limits.
-
-
-Summary
-
-This EDA (Exploratory Data Analysis) project focuses on analyzing credit card data to uncover patterns, trends, and insights related to customer behavior and credit card usage. The analysis includes data cleaning, visualization, and statistical exploration to identify key features, detect anomalies, and understand relationships between variables. The goal is to provide actionable insights that can help improve credit risk assessment, customer segmentation, and business decision-making.

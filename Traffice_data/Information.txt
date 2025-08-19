@@ -1,4 +1,8 @@
-🧩 Problem Statement
+Summary
+This notebook analyzes traffic data to find patterns in vehicle counts by time and location. It uses visualizations to show peak hours, busiest junctions, and monthly trends, and suggests ways to improve traffic flow.
+
+
+Problem Statement
 Objective: To analyze traffic patterns using the given dataset and develop data-driven optimization strategies that reduce congestion, improve mobility, and enhance urban traffic management—particularly focusing on high-density areas like Junction 1.
 
 Context: The dataset contains timestamped vehicle counts across multiple junctions, offering a granular view of traffic flow. Junction 1 consistently experiences high vehicle density, leading to delays, pollution, and commuter dissatisfaction.
@@ -6,23 +10,16 @@ Context: The dataset contains timestamped vehicle counts across multiple junctio
 Challenges:
 
 Uneven traffic distribution across junctions
-
 Peak-hour congestion with limited infrastructure
-
 Inefficient signal timing and lack of adaptive control
-
 Overreliance on private vehicles due to suboptimal public transport
 
 Goals:
 
 Identify traffic trends and peak congestion periods
-
 Quantify vehicle load per junction and time window
-
 Evaluate the impact of rerouting and signal optimization
-
 Simulate adaptive traffic control using predictive modeling
-
 Recommend infrastructure and policy changes based on data insights
 
 -----------------------------------------------------------------------------------------------------------------------------
@@ -31,13 +28,8 @@ Recommend infrastructure and policy changes based on data insights
 Optimization Strategies:
 
 - Smart Traffic Signals: Implement adaptive traffic lights at high-density junctions (especially Junction 1) to dynamically adjust based on real-time traffic flow.
-
 - Peak-Hour Management: Introduce staggered work schedules and incentives for commuting during off-peak hours.
-
 - Infrastructure Improvements: Expand road capacity in high-traffic zones or create dedicated lanes for public transport.
-
 - Public Transport Optimization: Increase the efficiency of buses and trains, encouraging fewer private vehicles on the road.
-
 - Rerouting Strategies: Divert excess traffic from Junction 1 to Junction 4 and redistribute vehicle load.
-
 - Data-Driven Planning: Use AI-based traffic prediction models to enhance decision-making.
