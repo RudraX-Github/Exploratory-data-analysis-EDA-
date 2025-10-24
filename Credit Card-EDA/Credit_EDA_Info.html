@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Credit Card EDA Showcase</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <!-- Custom Styles -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -187,15 +182,24 @@
             color: #e0e0e0;
         }
 
+        /* Removed Loader animation styles as spinner is removed */
+        /*
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        */
+
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header -->
     <header class="fixed top-0 left-0 right-0 z-50 glass-card mx-4 md:mx-8 lg:mx-auto lg:max-w-7xl mt-4 rounded-xl">
         <nav class="flex items-center justify-between p-4 lg:px-8">
             <a href="#" class="text-xl font-bold gradient-text">EDA Report</a>
-            <!-- Updated Nav Link Order -->
             <div class="hidden md:flex items-center space-x-6">
                 <a href="#home" class="text-gray-300 hover:text-white transition-colors">Home</a>
                 <a href="#goal" class="text-gray-300 hover:text-white transition-colors">Goal</a>
@@ -205,13 +209,11 @@
                 <a href="#visualizations" class="text-gray-300 hover:text-white transition-colors">Charts</a>
                 <a href="#solutions" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
             </div>
-            <!-- Mobile Menu Button -->
             <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10">
                 <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </nav>
-        <!-- Mobile Menu Panel (Updated Order) -->
         <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 space-y-2">
             <a href="#home" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Home</a>
             <a href="#goal" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Goal</a>
@@ -223,10 +225,8 @@
         </div>
     </header>
 
-    <!-- Main Content (Reorganized) -->
     <main class="pt-32 px-4 md:px-8 max-w-7xl mx-auto">
 
-        <!-- 1. Hero Section -->
         <section id="home" class="text-center py-16 md:py-24 reveal">
             <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
                 Credit Card Customer <span class="gradient-text">Insights</span>
@@ -239,7 +239,6 @@
             </a>
         </section>
 
-        <!-- 2. Business Goal Section -->
         <section id="goal" class="py-16 md:py-24 reveal">
             <div class="glass-card p-8 md:p-12">
                 <h2 class="text-3xl font-bold mb-6 flex items-center">
@@ -252,56 +251,121 @@
             </div>
         </section>
 
-        <!-- 3. Input Datasets Section (Moved Up) -->
         <section id="datasets" class="py-16 md:py-24 reveal">
             <h2 class="text-3xl font-bold mb-12 text-center">Datasets</h2>
             <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
                 The analysis is built upon several key data files. Click on a card to learn more about its role.
             </p>
+
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-12">
+                <a href="https://github.com/RudraX-Github/Exploratory-data-analysis-EDA-/blob/main/Credit%20Card-EDA/CC-EDA.ipynb" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 text-center flex items-center justify-center gap-2">
+                    <i data-lucide="notebook" class="w-5 h-5"></i>
+                    View Jupyter Notebook
+                </a>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Customer Acqusition.csv -->
-                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="customer-aq">
-                    <div class="flex items-center mb-3">
-                        <i data-lucide="users" class="w-7 h-7 mr-3 text-indigo-300"></i>
-                        <h3 class="text-xl font-semibold">Customer Acqusition</h3>
+                
+                <div class="glass-card glass-card-hover p-6 flex flex-col">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-3">
+                            <i data-lucide="users" class="w-7 h-7 mr-3 text-indigo-300"></i>
+                            <h3 class="text-xl font-semibold">Customer Acqusition</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm">Contains customer demographic data, including Age, City, Product type, spending Limit, and Segment.</p>
                     </div>
-                    <p class="text-gray-400 text-sm">Contains customer demographic data, including Age, City, Product type, spending Limit, and Segment.</p>
+                    <div class="mt-4 pt-4 border-t border-white/10 space-y-2">
+                        <button class="dataset-card w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 hover:text-white transition-colors" data-dataset-id="customer-aq">
+                            <i data-lucide="info" class="w-4 h-4 mr-2"></i>
+                            Learn More
+                        </button>
+                        <a role="button" 
+                           data-url="https://raw.githubusercontent.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/Customer%20Acqusition.csv" 
+                           data-filename="Customer Acqusition.csv"
+                           class="download-btn w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                            <span>Download</span>
+                        </a>
+                    </div>
                 </div>
-                <!-- spend.csv -->
-                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="spend">
-                    <div class="flex items-center mb-3">
-                        <i data-lucide="shopping-cart" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
-                        <h3 class="text-xl font-semibold">Spend</h3>
+
+                <div class="glass-card glass-card-hover p-6 flex flex-col">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-3">
+                            <i data-lucide="shopping-cart" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
+                            <h3 class="text-xl font-semibold">Spend</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm">Provides detailed records of individual customer transactions, including the Spend Type, Amount, and transaction Month.</p>
                     </div>
-                    <p class="text-gray-400 text-sm">Provides detailed records of individual customer transactions, including the Spend Type, Amount, and transaction Month.</p>
+                    <div class="mt-4 pt-4 border-t border-white/10 space-y-2">
+                        <button class="dataset-card w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 hover:text-white transition-colors" data-dataset-id="spend">
+                            <i data-lucide="info" class="w-4 h-4 mr-2"></i>
+                            Learn More
+                        </button>
+                        <a role="button" 
+                           data-url="https://raw.githubusercontent.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/spend.csv" 
+                           data-filename="spend.csv"
+                           class="download-btn w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                            <span>Download</span>
+                        </a>
+                    </div>
                 </div>
-                <!-- Repayment.csv -->
-                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="repayment">
-                    <div class="flex items-center mb-3">
-                        <i data-lucide="receipt" class="w-7 h-7 mr-3 text-indigo-300"></i>
-                        <h3 class="text-xl font-semibold">Repayment</h3>
+
+                <div class="glass-card glass-card-hover p-6 flex flex-col">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-3">
+                            <i data-lucide="receipt" class="w-7 h-7 mr-3 text-indigo-300"></i>
+                            <h3 class="text-xl font-semibold">Repayment</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm">Includes records of repayments made by customers, detailing the Amount paid and the corresponding Month.</p>
                     </div>
-                    <p class="text-gray-400 text-sm">Includes records of repayments made by customers, detailing the Amount paid and the corresponding Month.</p>
+                    <div class="mt-4 pt-4 border-t border-white/10 space-y-2">
+                        <button class="dataset-card w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 hover:text-white transition-colors" data-dataset-id="repayment">
+                            <i data-lucide="info" class="w-4 h-4 mr-2"></i>
+                            Learn More
+                        </button>
+                        <a role="button" 
+                           data-url="https://raw.githubusercontent.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/Repayment.csv" 
+                           data-filename="Repayment.csv"
+                           class="download-btn w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                            <span>Download</span>
+                        </a>
+                    </div>
                 </div>
-                <!-- Processed Data -->
-                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="processed">
-                    <div class="flex items-center mb-3">
-                        <i data-lucide="file-cog" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
-                        <h3 class="text-xl font-semibold">Processed Data</h3>
+
+                <div class="glass-card glass-card-hover p-6 flex flex-col">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-3">
+                            <i data-lucide="file-cog" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
+                            <h3 class="text-xl font-semibold">Processed Data</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm">Intermediate datasets created by merging and cleaning the raw files, as documented in the `CC-EDA.ipynb` notebook.</p>
                     </div>
-                    <p class="text-gray-400 text-sm">Intermediate datasets created by merging and cleaning the raw files, as documented in the `CC-EDA.ipynb` notebook.</p>
+                    <div class="mt-4 pt-4 border-t border-white/10 space-y-2">
+                        <button class="dataset-card w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 hover:text-white transition-colors" data-dataset-id="processed">
+                            <i data-lucide="info" class="w-4 h-4 mr-2"></i>
+                            Learn More
+                        </button>
+                        <a role="button" 
+                           data-url="https://raw.githubusercontent.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/spend_df_clean.csv" 
+                           data-filename="spend_df_clean.csv"
+                           class="download-btn w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white transition-colors cursor-pointer">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                            <span>Download</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </section>
+            </section>
         
-        <!-- 4. Methodology Section (Moved Up) -->
         <section id="methodology" class="py-16 md:py-24 reveal">
             <h2 class="text-3xl font-bold mb-12 text-center">My Analysis Methodology</h2>
             <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
                 The analysis followed a structured four-step process. Click on any step to see the technical details.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Step 1 -->
                 <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="loading">
                     <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
                         <i data-lucide="database" class="w-8 h-8"></i>
@@ -311,7 +375,6 @@
                         Loading the raw `.csv` files into memory for analysis.
                     </p>
                 </div>
-                <!-- Step 2 -->
                 <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="cleaning">
                     <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
                         <i data-lucide="wrench" class="w-8 h-8"></i>
@@ -321,7 +384,6 @@
                         Handling missing values, correcting types, and merging disparate datasets.
                     </p>
                 </div>
-                <!-- Step 3 -->
                 <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="engineering">
                     <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
                         <i data-lucide="settings-2" class="w-8 h-8"></i>
@@ -331,7 +393,6 @@
                         Creating new data columns to enable deeper analysis.
                     </p>
                 </div>
-                <!-- Step 4 -->
                 <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="analysis">
                     <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
                         <i data-lucide="pie-chart" class="w-8 h-8"></i>
@@ -344,11 +405,9 @@
             </div>
         </section>
 
-        <!-- 5. Key Insights Section (Interactive Tabs) -->
         <section id="insights" class="py-16 md:py-24 reveal">
             <h2 class="text-3xl font-bold mb-8 text-center">Key Customer Segments</h2>
 
-            <!-- Tab Buttons -->
             <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-8">
                 <button class="tab-button active px-6 py-3 font-semibold rounded-lg glass-card" data-tab="platinum">
                     Platinum Clients
@@ -361,10 +420,8 @@
                 </button>
             </div>
 
-            <!-- Tab Content -->
             <div class="glass-card p-8 md:p-12 min-h-[400px]">
                 
-                <!-- Platinum Tab Panel -->
                 <div id="tab-platinum" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                         <h3 class="text-2xl font-bold gradient-text mb-4">Platinum Clients</h3>
@@ -400,7 +457,6 @@
                     </div>
                 </div>
 
-                <!-- Gold Tab Panel -->
                 <div id="tab-gold" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                         <h3 class="text-2xl font-bold gradient-text mb-4">Gold Clients</h3>
@@ -436,7 +492,6 @@
                     </div>
                 </div>
                 
-                <!-- Silver Tab Panel -->
                 <div id="tab-silver" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                         <h3 class="text-2xl font-bold gradient-text mb-4">Silver Clients</h3>
@@ -475,35 +530,30 @@
             </div>
         </section>
 
-        <!-- 6. Visualizations Section -->
         <section id="visualizations" class="py-16 md:py-24 reveal">
             <h2 class="text-3xl font-bold mb-12 text-center">Data Visualizations</h2>
             <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
                 These visualizations are rendered directly from the aggregated data found in the analysis summary.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Chart 1: Spend Growth -->
                 <div class="glass-card p-6">
                     <h3 class="font-semibold text-lg mb-4 text-white">Spend Growth by Product (2004 vs 2006)</h3>
                     <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
                         <div id="chart-spend-growth"></div>
                     </div>
                 </div>
-                <!-- Chart 2: Top Spend Types -->
                 <div class="glass-card p-6">
                     <h3 class="font-semibold text-lg mb-4 text-white">Top 3 Spend Categories (% of Total)</h3>
                     <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
                          <div id="chart-spend-types"></div>
                     </div>
                 </div>
-                <!-- Chart 3: Customer Segmentation -->
                 <div class="glass-card p-6">
                     <h3 class="font-semibold text-lg mb-4 text-white">Customer Segmentation Overview</h3>
                     <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 flex items-center justify-center p-2">
                          <div id="chart-segmentation" class="w-full"></div>
                     </div>
                 </div>
-                <!-- Chart 4: Average Limit -->
                 <div class="glass-card p-6">
                     <h3 class="font-semibold text-lg mb-4 text-white">Average Customer Limit by Product</h3>
                     <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
@@ -513,8 +563,6 @@
             </div>
         </section>
 
-        <!-- 7. Summary of Findings / Solutions Section (Moved Down) -->
-        <!-- ID changed to 'solutions' for new navigation link -->
         <section id="solutions" class="py-16 md:py-24 reveal">
             <div class="glass-card p-8 md:p-12">
                 <h2 class="text-3xl font-bold mb-6 flex items-center">
@@ -526,7 +574,6 @@
                     
                     <div class="space-y-8">
                         
-                        <!-- Platinum Segment -->
                         <div>
                             <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
                                 <i data-lucide="award" class="w-6 h-6 mr-3"></i>
@@ -543,7 +590,6 @@
                             </ul>
                         </div>
 
-                        <!-- Gold Segment -->
                         <div>
                             <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
                                 <i data-lucide="trending-up" class="w-6 h-6 mr-3"></i>
@@ -560,7 +606,6 @@
                             </ul>
                         </div>
 
-                        <!-- Silver Segment -->
                         <div>
                             <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
                                 <i data-lucide="rocket" class="w-6 h-6 mr-3"></i>
@@ -584,12 +629,10 @@
 
     </main>
 
-    <!-- Footer -->
     <footer class="text-center py-12 mt-16 border-t border-white/10">
         <p class="text-gray-400">&copy; 2025 EDA Showcase. Built to analyze Credit Card customer data.</p>
     </footer>
 
-    <!-- Dataset Modal -->
     <div id="dataset-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="modal-content glass-card p-8 rounded-2xl w-full max-w-2xl">
             <div class="flex items-center justify-between mb-4">
@@ -602,7 +645,6 @@
         </div>
     </div>
 
-    <!-- Methodology Modal -->
     <div id="method-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="modal-content glass-card p-8 rounded-2xl w-full max-w-2xl">
             <div class="flex items-center justify-between mb-4">
@@ -687,7 +729,8 @@
         });
 
         // --- Dataset Modal Logic ---
-        const datasetCards = document.querySelectorAll('.dataset-card');
+        // Note: This now targets the '.dataset-card' button, not the whole div
+        const datasetCards = document.querySelectorAll('.dataset-card'); 
         const datasetModal = document.getElementById('dataset-modal');
         const datasetModalTitle = document.getElementById('dataset-modal-title');
         const datasetModalDescription = document.getElementById('dataset-modal-description');
@@ -867,9 +910,91 @@
             }
         });
 
+        // --- === UPDATED SCRIPT FOR FORCED DOWNLOAD (No Spinner) === ---
+        
+        /**
+         * Fetches a file from a URL and triggers a browser download.
+         * @param {string} url The URL of the file to download.
+         * @param {string} filename The desired name for the downloaded file.
+         * @param {HTMLElement} buttonElement The button that was clicked.
+         */
+        async function downloadFile(url, filename, buttonElement) {
+            // Find the span and icon inside the button
+            const textSpan = buttonElement.querySelector('span');
+            const originalText = textSpan.innerHTML;
+            const icon = buttonElement.querySelector('i[data-lucide="download"]');
+            
+            // --- Set loading state (text only) ---
+            textSpan.textContent = 'Downloading...';
+            buttonElement.disabled = true;
+            if (icon) icon.style.display = 'none'; // Hide download icon while text changes
+
+            try {
+                // 1. Fetch the file
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+                // 2. Get the data as a Blob
+                const blob = await response.blob();
+
+                // 3. Create a temporary URL for the blob
+                const blobUrl = URL.createObjectURL(blob);
+
+                // 4. Create a temporary <a> tag to trigger the download
+                const tempLink = document.createElement('a');
+                tempLink.href = blobUrl;
+                tempLink.download = filename; // Set the download attribute with the filename
+                
+                // 5. Add to DOM, click, and remove
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+
+                // 6. Revoke the temporary URL to free up memory
+                URL.revokeObjectURL(blobUrl);
+
+                // 7. --- RESTORE ON SUCCESS ---
+                textSpan.innerHTML = originalText;
+                buttonElement.disabled = false;
+                if (icon) icon.style.display = 'inline-block'; 
+
+            } catch (error) {
+                console.error("Download failed:", error);
+                
+                // --- RESTORE ON ERROR ---
+                textSpan.textContent = 'Error!'; // Show error briefly
+                buttonElement.disabled = false; // Re-enable button
+                if (icon) icon.style.display = 'inline-block'; // Show icon again
+
+                // After a delay, reset the text
+                setTimeout(() => {
+                    textSpan.innerHTML = originalText;
+                }, 2000); // Show "Error!" for 2s
+            }
+        }
+
+        // Add click listeners to all download buttons
+        document.querySelectorAll('.download-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                // Prevent default <a> tag behavior
+                e.preventDefault(); 
+                
+                // Get the current button (the <a> tag)
+                const btn = e.currentTarget; 
+
+                // Get data from attributes
+                const url = btn.dataset.url;
+                const filename = btn.dataset.filename;
+
+                if (url && filename && !btn.disabled) {
+                    downloadFile(url, filename, btn);
+                }
+            });
+        });
+
+
     </script>
 
-    <!-- Charting Script -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             
@@ -1178,4 +1303,3 @@
     </script>
 </body>
 </html>
-
