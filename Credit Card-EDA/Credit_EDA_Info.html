@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card EDA Showcase</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Animated gradient background */
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            color: #E0E0E0;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Set scroll padding to offset the fixed header */
+        html {
+            scroll-padding-top: 100px;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem; /* 16px */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .glass-card-hover:hover {
+             background: rgba(255, 255, 255, 0.1);
+             transform: translateY(-5px);
+             transition: all 0.3s ease;
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(90deg, #818cf8, #c084fc, #f0abfc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            animation: gradient-shimmer 3s linear infinite;
+            background-size: 200% 100%;
+        }
+        
+        @keyframes gradient-shimmer {
+            0% { background-position: 200% 50%; }
+            100% { background-position: -200% 50%; }
+        }
+
+        /* Active Tab Style */
+        .tab-button.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff;
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.5);
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button:not(.active):hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Scroll-fade-in animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Staggered reveal for methodology cards */
+        .reveal-stagger {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .reveal.visible .reveal-stagger:nth-child(1) { transition-delay: 0.1s; }
+        .reveal.visible .reveal-stagger:nth-child(2) { transition-delay: 0.2s; }
+        .reveal.visible .reveal-stagger:nth-child(3) { transition-delay: 0.3s; }
+        .reveal.visible .reveal-stagger:nth-child(4) { transition-delay: 0.4s; }
+        
+        .reveal.visible .reveal-stagger {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom scrollbar (WebKit) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+
+        /* ApexCharts tooltip style */
+        .apexcharts-tooltip.apexcharts-theme-dark {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #E0E0E0;
+        }
+
+        /* Pulsing icon animation */
+        @keyframes pulse-glow {
+            0%, 100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 3px #c084fc);
+            }
+            50% {
+                opacity: 0.7;
+                filter: drop-shadow(0 0 8px #c084fc);
+            }
+        }
+        .icon-pulse {
+            animation: pulse-glow 2.5s infinite ease-in-out;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            transition: all 0.3s ease;
+            /* Added scale for a more "expert" pop-in */
+            transform: translateY(20px) scale(0.98);
+            opacity: 0;
+        }
+
+        .modal-overlay:not(.hidden) .modal-content {
+            /* Full scale and opacity when visible */
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        /* Modal list styles */
+        .modal-list ul {
+            list-style-type: disc;
+            list-style-position: inside;
+            padding-left: 0.5rem;
+        }
+        .modal-list li {
+            margin-bottom: 0.5rem;
+        }
+        .modal-list li::marker {
+            color: #c084fc;
+        }
+        .modal-list strong {
+            color: #e0e0e0;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-card mx-4 md:mx-8 lg:mx-auto lg:max-w-7xl mt-4 rounded-xl">
+        <nav class="flex items-center justify-between p-4 lg:px-8">
+            <a href="#" class="text-xl font-bold gradient-text">EDA Report</a>
+            <!-- Updated Nav Link Order -->
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#home" class="text-gray-300 hover:text-white transition-colors">Home</a>
+                <a href="#goal" class="text-gray-300 hover:text-white transition-colors">Goal</a>
+                <a href="#datasets" class="text-gray-300 hover:text-white transition-colors">Datasets</a>
+                <a href="#methodology" class="text-gray-300 hover:text-white transition-colors">Methodology</a>
+                <a href="#insights" class="text-gray-300 hover:text-white transition-colors">Insights</a>
+                <a href="#visualizations" class="text-gray-300 hover:text-white transition-colors">Charts</a>
+                <a href="#solutions" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10">
+                <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu Panel (Updated Order) -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 space-y-2">
+            <a href="#home" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Home</a>
+            <a href="#goal" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Goal</a>
+            <a href="#datasets" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Datasets</a>
+            <a href="#methodology" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Methodology</a>
+            <a href="#insights" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Insights</a>
+            <a href="#visualizations" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Charts</a>
+            <a href="#solutions" class="block text-gray-300 hover:text-white transition-colors rounded-md px-3 py-2 hover:bg-white/10">Solutions</a>
+        </div>
+    </header>
+
+    <!-- Main Content (Reorganized) -->
+    <main class="pt-32 px-4 md:px-8 max-w-7xl mx-auto">
+
+        <!-- 1. Hero Section -->
+        <section id="home" class="text-center py-16 md:py-24 reveal">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-6">
+                Credit Card Customer <span class="gradient-text">Insights</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+                An Exploratory Data Analysis project focused on customer behavior, spend patterns, and segmentation to drive proactive business strategies and minimize churn.
+            </p>
+            <a href="#insights" class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105">
+                Explore Key Insights
+            </a>
+        </section>
+
+        <!-- 2. Business Goal Section -->
+        <section id="goal" class="py-16 md:py-24 reveal">
+            <div class="glass-card p-8 md:p-12">
+                <h2 class="text-3xl font-bold mb-6 flex items-center">
+                    <i data-lucide="target" class="w-8 h-8 mr-3 gradient-text icon-pulse"></i>
+                    Business Goal & Problem
+                </h2>
+                <p class="text-lg text-gray-300 leading-relaxed">
+                    This project's goal is doing an exploratory data analysis (EDA) in the Credit Card Industry to help the company with proactive offers and services to the customers, gain market share and minimize customer churn. The goal is to analyze the data set to summarize its main characteristics using several different visual methods, primarily for seeing what the data can tell us.
+                </p>
+            </div>
+        </section>
+
+        <!-- 3. Input Datasets Section (Moved Up) -->
+        <section id="datasets" class="py-16 md:py-24 reveal">
+            <h2 class="text-3xl font-bold mb-12 text-center">Datasets</h2>
+            <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
+                The analysis is built upon several key data files. Click on a card to learn more about its role.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Customer Acqusition.csv -->
+                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="customer-aq">
+                    <div class="flex items-center mb-3">
+                        <i data-lucide="users" class="w-7 h-7 mr-3 text-indigo-300"></i>
+                        <h3 class="text-xl font-semibold">Customer Acqusition</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">Contains customer demographic data, including Age, City, Product type, spending Limit, and Segment.</p>
+                </div>
+                <!-- spend.csv -->
+                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="spend">
+                    <div class="flex items-center mb-3">
+                        <i data-lucide="shopping-cart" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
+                        <h3 class="text-xl font-semibold">Spend</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">Provides detailed records of individual customer transactions, including the Spend Type, Amount, and transaction Month.</p>
+                </div>
+                <!-- Repayment.csv -->
+                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="repayment">
+                    <div class="flex items-center mb-3">
+                        <i data-lucide="receipt" class="w-7 h-7 mr-3 text-indigo-300"></i>
+                        <h3 class="text-xl font-semibold">Repayment</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">Includes records of repayments made by customers, detailing the Amount paid and the corresponding Month.</p>
+                </div>
+                <!-- Processed Data -->
+                <div class="glass-card glass-card-hover p-6 dataset-card cursor-pointer" data-dataset-id="processed">
+                    <div class="flex items-center mb-3">
+                        <i data-lucide="file-cog" class="w-7 h-7 mr-3 text-fuchsia-300"></i>
+                        <h3 class="text-xl font-semibold">Processed Data</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">Intermediate datasets created by merging and cleaning the raw files, as documented in the `CC-EDA.ipynb` notebook.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 4. Methodology Section (Moved Up) -->
+        <section id="methodology" class="py-16 md:py-24 reveal">
+            <h2 class="text-3xl font-bold mb-12 text-center">My Analysis Methodology</h2>
+            <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
+                The analysis followed a structured four-step process. Click on any step to see the technical details.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Step 1 -->
+                <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="loading">
+                    <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
+                        <i data-lucide="database" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">1. Data Loading</h3>
+                    <p class="text-gray-400 text-sm">
+                        Loading the raw `.csv` files into memory for analysis.
+                    </p>
+                </div>
+                <!-- Step 2 -->
+                <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="cleaning">
+                    <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
+                        <i data-lucide="wrench" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">2. Cleaning & Merging</h3>
+                    <p class="text-gray-400 text-sm">
+                        Handling missing values, correcting types, and merging disparate datasets.
+                    </p>
+                </div>
+                <!-- Step 3 -->
+                <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="engineering">
+                    <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
+                        <i data-lucide="settings-2" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">3. Feature Engineering</h3>
+                    <p class="text-gray-400 text-sm">
+                        Creating new data columns to enable deeper analysis.
+                    </p>
+                </div>
+                <!-- Step 4 -->
+                <div class="glass-card glass-card-hover p-6 text-center reveal-stagger method-card cursor-pointer" data-method-id="analysis">
+                    <div class="w-16 h-16 bg-indigo-600/30 text-indigo-300 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-indigo-500">
+                        <i data-lucide="pie-chart" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">4. Analysis & Visualization</h3>
+                    <p class="text-gray-400 text-sm">
+                        Aggregating data to answer business questions and plotting the results.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Key Insights Section (Interactive Tabs) -->
+        <section id="insights" class="py-16 md:py-24 reveal">
+            <h2 class="text-3xl font-bold mb-8 text-center">Key Customer Segments</h2>
+
+            <!-- Tab Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-8">
+                <button class="tab-button active px-6 py-3 font-semibold rounded-lg glass-card" data-tab="platinum">
+                    Platinum Clients
+                </button>
+                <button class="tab-button px-6 py-3 font-semibold rounded-lg glass-card" data-tab="gold">
+                    Gold Clients
+                </button>
+                <button class="tab-button px-6 py-3 font-semibold rounded-lg glass-card" data-tab="silver">
+                    Silver Clients
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="glass-card p-8 md:p-12 min-h-[400px]">
+                
+                <!-- Platinum Tab Panel -->
+                <div id="tab-platinum" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-bold gradient-text mb-4">Platinum Clients</h3>
+                        <p class="text-lg text-gray-300 mb-6">
+                            These are our premium, high-spend clients. They represent the highest average spend per client and are excellent payers.
+                        </p>
+                        <h4 class="text-xl font-semibold mb-3">Strategy:</h4>
+                        <p class="text-gray-300 leading-relaxed bg-black/20 p-4 rounded-lg">
+                            The company strategy here needs to be in <span class="font-bold text-white">retaining them</span>, investing in relationship, offering products they want and maybe increasing their Limits.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 pt-2">
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">38%</span>
+                            <p class="text-sm text-gray-300 mt-1">of Customers</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">1.564M</span>
+                            <p class="text-sm text-gray-300 mt-1">Avg. 2006 Spend (Highest)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">109%</span>
+                            <p class="text-sm text-gray-300 mt-1">Payment vs. Spend (2006)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">43</span>
+                            <p class="text-sm text-gray-300 mt-1">Average Age</p>
+                        </div>
+                        <div class="col-span-2 glass-card p-4 rounded-lg text-center">
+                            <span class="text-lg font-semibold text-white">Top Spends:</span>
+                            <p class="text-gray-300 mt-1">Transportation (21%), Petro (13%), Food (12%)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gold Tab Panel -->
+                <div id="tab-gold" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-bold gradient-text mb-4">Gold Clients</h3>
+                        <p class="text-lg text-gray-300 mb-6">
+                            This segment consists of very good payers with high limits, showing strong growth and a high interest in leisure.
+                        </p>
+                        <h4 class="text-xl font-semibold mb-3">Strategy:</h4>
+                        <p class="text-gray-300 leading-relaxed bg-black/20 p-4 rounded-lg">
+                            This group is growing fast. The company should <span class="font-bold text-white">increase their Limits significantly</span> and target them with leisure trip advertisements to gain market share.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 pt-2">
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">39%</span>
+                            <p class="text-sm text-gray-300 mt-1">of Customers</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">48%</span>
+                            <p class="text-sm text-gray-300 mt-1">Spend Growth (2004-06)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">104%</span>
+                            <p class="text-sm text-gray-300 mt-1">Payment vs. Spend (2006)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">288k</span>
+                            <p class="text-sm text-gray-300 mt-1">Average Limit</p>
+                        </div>
+                        <div class="col-span-2 glass-card p-4 rounded-lg text-center">
+                            <span class="text-lg font-semibold text-white">Top Spends:</span>
+                            <p class="text-gray-300 mt-1">Transportation (20%), Petro (14%), Food (12%)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Silver Tab Panel -->
+                <div id="tab-silver" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-bold gradient-text mb-4">Silver Clients</h3>
+                        <p class="text-lg text-gray-300 mb-6">
+                            This segment shows the highest spend growth and are reliable payers, representing a significant opportunity for growth.
+                        </p>
+                        <h4 class="text-xl font-semibold mb-3">Strategy:</h4>
+                        <p class="text-gray-300 leading-relaxed bg-black/20 p-4 rounded-lg">
+                            This group has high growth potential. We should <span class="font-bold text-white">Increase Limits</span>, invest in the relationship, and focus on offers to gain market share from this segment.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 pt-2">
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">23%</span>
+                            <p class="text-sm text-gray-300 mt-1">of Customers</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">54%</span>
+                            <p class="text-sm text-gray-300 mt-1">Spend Growth (2004-06)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">102%</span>
+                            <p class="text-sm text-gray-300 mt-1">Payment vs. Spend (2006)</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-lg text-center">
+                            <span class="text-3xl font-bold gradient-text">172k</span>
+                            <p class="text-sm text-gray-300 mt-1">Average Limit</p>
+                        </div>
+                        <div class="col-span-2 glass-card p-4 rounded-lg text-center">
+                            <span class="text-lg font-semibold text-white">Top Spends:</span>
+                            <p class="text-gray-300 mt-1">Transportation (21%), Petro (14%), Food (13%)</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 6. Visualizations Section -->
+        <section id="visualizations" class="py-16 md:py-24 reveal">
+            <h2 class="text-3xl font-bold mb-12 text-center">Data Visualizations</h2>
+            <p class="text-center text-lg text-gray-300 max-w-2xl mx-auto mb-12">
+                These visualizations are rendered directly from the aggregated data found in the analysis summary.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Chart 1: Spend Growth -->
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold text-lg mb-4 text-white">Spend Growth by Product (2004 vs 2006)</h3>
+                    <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
+                        <div id="chart-spend-growth"></div>
+                    </div>
+                </div>
+                <!-- Chart 2: Top Spend Types -->
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold text-lg mb-4 text-white">Top 3 Spend Categories (% of Total)</h3>
+                    <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
+                         <div id="chart-spend-types"></div>
+                    </div>
+                </div>
+                <!-- Chart 3: Customer Segmentation -->
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold text-lg mb-4 text-white">Customer Segmentation Overview</h3>
+                    <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 flex items-center justify-center p-2">
+                         <div id="chart-segmentation" class="w-full"></div>
+                    </div>
+                </div>
+                <!-- Chart 4: Average Limit -->
+                <div class="glass-card p-6">
+                    <h3 class="font-semibold text-lg mb-4 text-white">Average Customer Limit by Product</h3>
+                    <div class="w-full h-80 bg-black/20 rounded-lg border border-white/10 p-2">
+                         <div id="chart-avg-limit"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Summary of Findings / Solutions Section (Moved Down) -->
+        <!-- ID changed to 'solutions' for new navigation link -->
+        <section id="solutions" class="py-16 md:py-24 reveal">
+            <div class="glass-card p-8 md:p-12">
+                <h2 class="text-3xl font-bold mb-6 flex items-center">
+                    <i data-lucide="clipboard-list" class="w-8 h-8 mr-3 gradient-text"></i>
+                    Actionable Solutions & Strategies
+                </h2>
+                <div class="text-lg text-gray-300 leading-relaxed">
+                    <p class="mb-8">My analysis of the graphical data translates directly into the following proactive offers and services, designed to gain market share and minimize churn by targeting each customer segment's unique behavior.</p>
+                    
+                    <div class="space-y-8">
+                        
+                        <!-- Platinum Segment -->
+                        <div>
+                            <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
+                                <i data-lucide="award" class="w-6 h-6 mr-3"></i>
+                                Platinum Clients (Retain)
+                            </h3>
+                            <p class="text-gray-300 mb-4">
+                                <strong>Finding:</strong> These are high-value, high-spend (1.56M avg.), and reliable payers (109% payment rate). The primary goal is retention.
+                            </p>
+                            <strong class="text-gray-200">Solutions & Offers:</strong>
+                            <ul class="list-disc list-inside mt-2 text-gray-300 space-y-1 modal-list">
+                                <li><strong>Minimize Churn:</strong> Invest in premium relationship management.</li>
+                                <li><strong>Bespoke Products:</strong> Offer products and rewards they desire.</li>
+                                <li><strong>Increase Limits:</strong> Proactively increase limits to reward loyalty.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Gold Segment -->
+                        <div>
+                            <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
+                                <i data-lucide="trending-up" class="w-6 h-6 mr-3"></i>
+                                Gold Clients (Grow)
+                            </h3>
+                            <p class="text-gray-300 mb-4">
+                                <strong>Finding:</strong> This segment is growing fast (48% growth) and has high average limits (288k), showing a strong interest in leisure/travel.
+                            </p>
+                            <strong class="text-gray-200">Solutions & Offers:</strong>
+                            <ul class="list-disc list-inside mt-2 text-gray-300 space-y-1 modal-list">
+                                <li><strong>Gain Market Share:</strong> Target with leisure trip advertisements.</li>
+                                <li><strong>Proactive Offers:</strong> Provide significant limit increases to encourage spend.</li>
+                                <li><strong>Capitalize on Growth:</strong> Focus marketing on their high-interest categories.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Silver Segment -->
+                        <div>
+                            <h3 class="flex items-center text-2xl font-semibold gradient-text mb-3">
+                                <i data-lucide="rocket" class="w-6 h-6 mr-3"></i>
+                                Silver Clients (Nurture)
+                            </h3>
+                            <p class="text-gray-300 mb-4">
+                                <strong>Finding:</strong> This segment has the highest spend growth (54%) and represents a major untapped opportunity.
+                            </p>
+                            <strong class="text-gray-200">Solutions & Offers:</strong>
+                            <ul class="list-disc list-inside mt-2 text-gray-300 space-y-1 modal-list">
+                                <li><strong>Gain Market Share:</strong> Invest in the relationship to build loyalty.</li>
+                                <li><strong>Targeted Offers:</strong> Focus on offers that capture their high-growth potential.</li>
+                                <li><strong>Increase Limits:</strong> Proactively increase limits to fuel their spending growth.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-12 mt-16 border-t border-white/10">
+        <p class="text-gray-400">&copy; 2025 EDA Showcase. Built to analyze Credit Card customer data.</p>
+    </footer>
+
+    <!-- Dataset Modal -->
+    <div id="dataset-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-content glass-card p-8 rounded-2xl w-full max-w-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="dataset-modal-title" class="text-2xl font-bold gradient-text"></h3>
+                <button id="dataset-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-7 h-7"></i>
+                </button>
+            </div>
+            <div id="dataset-modal-description" class="text-gray-300 leading-relaxed modal-list"></div>
+        </div>
+    </div>
+
+    <!-- Methodology Modal -->
+    <div id="method-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-content glass-card p-8 rounded-2xl w-full max-w-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="method-modal-title" class="text-2xl font-bold gradient-text"></h3>
+                <button id="method-modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-7 h-7"></i>
+                </button>
+            </div>
+            <div id="method-modal-description" class="text-gray-300 leading-relaxed modal-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Initialize Lucide Icons ---
+        lucide.createIcons();
+
+        // --- Mobile Menu Toggle ---
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const iconOpen = document.getElementById('menu-icon-open');
+        const iconClose = document.getElementById('menu-icon-close');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            iconOpen.classList.toggle('hidden');
+            iconClose.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when a link is clicked
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                iconOpen.classList.remove('hidden');
+                iconClose.classList.add('hidden');
+            });
+        });
+
+
+        // --- Tabbed Interface ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Get the target tab from data attribute
+                const targetTab = button.dataset.tab;
+
+                // Deactivate all buttons
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Activate clicked button
+                button.classList.add('active');
+
+                // Hide all tab content
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show target tab content
+                document.getElementById('tab-' + targetTab).classList.remove('hidden');
+            });
+        });
+
+        // --- Scroll Reveal Animation ---
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Optional: unobserve after revealing to save resources
+                    // observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        });
+
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // --- Dataset Modal Logic ---
+        const datasetCards = document.querySelectorAll('.dataset-card');
+        const datasetModal = document.getElementById('dataset-modal');
+        const datasetModalTitle = document.getElementById('dataset-modal-title');
+        const datasetModalDescription = document.getElementById('dataset-modal-description');
+        const datasetModalCloseBtn = document.getElementById('dataset-modal-close-btn');
+
+        const datasetDescriptions = {
+            'customer-aq': {
+                title: 'Customer Acqusition.csv',
+                description: `
+                    <strong>Role:</strong> This is the foundational file for customer demographics.
+                    <ul>
+                        <li>Contains unique customer identifiers (Customer ID).</li>
+                        <li>Includes key demographic data: <strong>Age</strong>, <strong>City</strong>.</li>
+                        <li>Defines the customer's product tier: <strong>Product</strong> (Platinum, Gold, Silver).</li>
+                        <li>Specifies the customer's credit <strong>Limit</strong>.</li>
+                        <li>Provides professional <strong>Segment</strong> (e.g., Self Employed, Govt, Salaried_MNC).</li>
+                    </ul>
+                `
+            },
+            'spend': {
+                title: 'spend.csv',
+                description: `
+                    <strong>Role:</strong> Provides all individual customer transactions.
+                    <ul>
+                        <li>Links to customers via Customer ID.</li>
+                        <li>Details the transaction <strong>Amount</strong>.</li>
+                        <li>Specifies the <strong>Month</strong> of the transaction.</li>
+                        <li>Categorizes the transaction by <strong>Spend Type</strong> (e.g., PETRO, FOOD, AIR TICKET).</li>
+                        <li>This data is crucial for understanding spending habits and category preferences.</li>
+                    </ul>
+                `
+            },
+            'repayment': {
+                title: 'Repayment.csv',
+                description: `
+                    <strong>Role:</strong> Provides all customer repayment records.
+                    <ul>
+                        <li>Links to customers via Customer ID.</li>
+                        <li>Details the repayment <strong>Amount</strong>.</li>
+                        <li>Specifies the <strong>Month</strong> of the repayment.</li>
+                        <li>This data is compared against spend data to calculate payment-to-spend ratios.</li>
+                    </ul>
+                `
+            },
+            'processed': {
+                title: 'Processed Data (e.g., spend_df_clean.csv)',
+                description: `
+                    <strong>Role:</strong> The final, clean dataset used for all analysis and visualization.
+                    <ul>
+                        <li>Created by merging the 'Customer Acqusition', 'spend', and 'Repayment' files.</li>
+                        <li>Data is cleaned (nulls handled, types corrected).</li>
+                        <li>New features are engineered (see Methodology section).</li>
+                        <li>This master dataset allows for holistic analysis by combining demographics with financial behavior.</li>
+                    </ul>
+                `
+            }
+        };
+
+        datasetCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const datasetId = card.dataset.datasetId;
+                const data = datasetDescriptions[datasetId];
+                
+                if (data) {
+                    datasetModalTitle.textContent = data.title;
+                    datasetModalDescription.innerHTML = data.description;
+                    datasetModal.classList.remove('hidden');
+                    // Re-run createIcons to render the close (x) icon if it was missed
+                    lucide.createIcons();
+                }
+            });
+        });
+
+        const closeDatasetModal = () => {
+            datasetModal.classList.add('hidden');
+        };
+
+        datasetModalCloseBtn.addEventListener('click', closeDatasetModal);
+        datasetModal.addEventListener('click', (e) => {
+            if (e.target === datasetModal) {
+                closeDatasetModal();
+            }
+        });
+
+
+        // --- Methodology Modal Logic ---
+        const methodCards = document.querySelectorAll('.method-card');
+        const methodModal = document.getElementById('method-modal');
+        const methodModalTitle = document.getElementById('method-modal-title');
+        const methodModalDescription = document.getElementById('method-modal-description');
+        const methodModalCloseBtn = document.getElementById('method-modal-close-btn');
+
+        const methodologyDescriptions = {
+            'loading': {
+                title: '1. Data Loading',
+                description: `
+                    <strong>Libraries Used:</strong>
+                    <ul>
+                        <li><strong>Pandas:</strong> For loading data into DataFrames.</li>
+                        <li><strong>NumPy:</strong> For numerical operations.</li>
+                    </ul>
+                    <strong>Methods:</strong>
+                    <ul>
+                        <li><code>pd.read_csv()</code> was used to load 'Customer Acqusition.csv', 'spend.csv', and 'Repayment.csv'.</li>
+                    </ul>
+                `
+            },
+            'cleaning': {
+                title: '2. Cleaning & Merging',
+                description: `
+                    <strong>Methods:</strong>
+                    <ul>
+                        <li><code>.isnull().sum()</code> to identify missing data (e.g., in 'Repayment' amount).</li>
+                        <li><code>fillna()</code> to fill missing repayment values with the dataset mean.</li>
+                        <li><code>pd.to_datetime()</code> to convert date columns ('Month') to a standard datetime format.</li>
+                        <li><code>pd.merge()</code> to join the 'spend' and 'Customer Acqusition' dataframes. A separate merge was done for 'Repayment' and 'Customer Acqusition'.</li>
+                        <li>Corrected 'Platimum' spelling to 'Platinum' in the 'Product' column.</li>
+                    </ul>
+                `
+            },
+            'engineering': {
+                title: '3. Feature Engineering',
+                description: `
+                    <strong>New Features Created:</strong>
+                    <ul>
+                        <li><strong>Spend_Month</strong> & E; <strong>Spend_Year:</strong> Extracted from the datetime 'Month' column to allow for yearly/monthly aggregation.</li>
+                        <li><strong>Payment_Month</strong> & <strong>Payment_Year:</strong> Similarly extracted for the repayment dataset.</li>
+                        <li><strong>Spend Amount to Limit Ratio:</strong> Calculated as (Spend_Amount / Limit) to see how much of their limit customers use.</li>
+                        <li><strong>Product_Level:</strong> A numerical mapping (Platinum=3, Gold=2, Silver=1) for correlation analysis.</li>
+                        <li><strong>Dummy Variables:</strong> Used <code>pd.get_dummies()</code> to convert categorical 'Segment' and 'Spend_Type' columns into numerical flags for modeling.</li>
+                    </ul>
+                `
+            },
+            'analysis': {
+                title: '4. Analysis & Visualization',
+                description: `
+                    <strong>Libraries Used:</strong>
+                    <ul>
+                        <li><strong>Matplotlib:</strong> For basic plotting and figure customization.</li>
+                        <li><strong>Seaborn:</strong> For more advanced statistical plots (like heatmaps).</li>
+                        <li><strong>Plotly:</strong> Used for creating interactive visualizations in the notebook.</li>
+                    </ul>
+                    <strong>Methods & Visuals:</strong>
+                    <ul>
+                        <li><code>.groupby()</code>: Used extensively to aggregate data by Product, Year, City, and Spend Type.</li>
+                        <li><strong>Bar Plots:</strong> To compare spends across years and product types.</li>
+                        <li><strong>Pie Charts:</strong> To show the distribution of customers by Product.</li>
+                        <li><strong>Histograms:</strong> To understand the distribution of customer Age.</li>
+                        <li><strong>Heatmap:</strong> Used <code>sns.heatmap()</code> to visualize the correlation matrix between numerical features.</li>
+                    </ul>
+                `
+            }
+        };
+
+        methodCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const methodId = card.dataset.methodId;
+                const data = methodologyDescriptions[methodId];
+                
+                if (data) {
+                    methodModalTitle.textContent = data.title;
+                    methodModalDescription.innerHTML = data.description;
+                    methodModal.classList.remove('hidden');
+                    lucide.createIcons();
+                }
+            });
+        });
+
+        const closeMethodModal = () => {
+            methodModal.classList.add('hidden');
+        };
+
+        methodModalCloseBtn.addEventListener('click', closeMethodModal);
+        methodModal.addEventListener('click', (e) => {
+            if (e.target === methodModal) {
+                closeMethodModal();
+            }
+        });
+
+    </script>
+
+    <!-- Charting Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // --- Base Chart Options for Dark Theme ---
+            const baseChartOptions = {
+                chart: {
+                    foreColor: '#E0E0E0',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                grid: {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    strokeDashArray: 4
+                },
+                xaxis: {
+                    labels: {
+                        style: {
+                            colors: '#E0E0E0'
+                        }
+                    },
+                    axisBorder: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    axisTicks: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#E0E0E0'
+                        },
+                        formatter: (val) => {
+                            if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
+                            if (val >= 1000) return (val / 1000).toFixed(0) + 'k';
+                            return val;
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                legend: {
+                    labels: {
+                        colors: '#E0E0E0'
+                    }
+                }
+            };
+
+            // --- Chart 1: Spend Growth by Product (2004 vs 2006) ---
+            // Data from Credit card Information.txt (in Millions)
+            // Platinum: 37.679M (2004), 50.044M (2006)
+            // Gold: 22.846M (2004), 33.785M (2006)
+            // Silver: 12.016M (2004), 18.520M (2006)
+            const chartSpendGrowthOptions = {
+                ...baseChartOptions,
+                series: [
+                    {
+                        name: '2004 Spend',
+                        data: [37679000, 22846000, 12016000] // In actual numbers
+                    }, 
+                    {
+                        name: '2006 Spend',
+                        data: [50044000, 33785000, 18520000] // In actual numbers
+                    }
+                ],
+                chart: {
+                    ...baseChartOptions.chart,
+                    type: 'bar',
+                    height: 300
+                },
+                colors: ['#818cf8', '#f0abfc'], // Indigo-400, Fuchsia-300
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '60%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    ...baseChartOptions.xaxis,
+                    categories: ['Platinum', 'Gold', 'Silver'],
+                },
+                yaxis: {
+                    ...baseChartOptions.yaxis,
+                    title: {
+                        text: 'Spend Amount (in Millions)',
+                        style: {
+                            color: '#E0E0E0',
+                            fontWeight: 400
+                        }
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                tooltip: {
+                    ...baseChartOptions.tooltip,
+                    y: {
+                        formatter: (val) => (val / 1000000).toFixed(3) + " M"
+                    }
+                }
+            };
+            const chartSpendGrowth = new ApexCharts(document.querySelector("#chart-spend-growth"), chartSpendGrowthOptions);
+            chartSpendGrowth.render();
+
+            // --- Chart 2: Top 3 Spend Categories (% of Total) ---
+            // Data from Credit card Information.txt
+            // Transportation: Plat (21%), Gold (20%), Silver (21%)
+            // Petro: Plat (13%), Gold (14%), Silver (14%)
+            // Food: Plat (12%), Gold (12%), Silver (13%)
+            const chartSpendTypesOptions = {
+                ...baseChartOptions,
+                series: [
+                    {
+                        name: 'Platinum',
+                        data: [21, 13, 12]
+                    }, 
+                    {
+                        name: 'Gold',
+                        data: [20, 14, 12]
+                    },
+                    {
+                        name: 'Silver',
+                        data: [21, 14, 13]
+                    }
+                ],
+                chart: {
+                    ...baseChartOptions.chart,
+                    type: 'bar',
+                    height: 300
+                },
+                colors: ['#c084fc', '#818cf8', '#a5b4fc'], // Purple, Indigo, Indigo-300
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '70%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: false,
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    ...baseChartOptions.xaxis,
+                    categories: ['Transportation', 'Petro', 'Food'],
+                },
+                yaxis: {
+                    ...baseChartOptions.yaxis,
+                    title: {
+                        text: '% of Total Spend',
+                        style: {
+                            color: '#E0E0E0',
+                            fontWeight: 400
+                        }
+                    },
+                    labels: {
+                        ...baseChartOptions.yaxis.labels,
+                        formatter: (val) => val + "%"
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                tooltip: {
+                    ...baseChartOptions.tooltip,
+                    y: {
+                        formatter: (val) => val + "%"
+                    }
+                }
+            };
+            const chartSpendTypes = new ApexCharts(document.querySelector("#chart-spend-types"), chartSpendTypesOptions);
+            chartSpendTypes.render();
+
+
+            // --- Chart 3: Customer Segmentation Overview ---
+            // Data from Credit card Information.txt
+            // Platinum: 38%
+            // Gold: 39%
+            // Silver: 23%
+            const chartSegmentationOptions = {
+                series: [39, 38, 23], // Gold, Platinum, Silver
+                chart: {
+                    type: 'donut',
+                    height: 320,
+                    foreColor: '#E0E0E0'
+                },
+                labels: ['Gold', 'Platinum', 'Silver'],
+                colors: ['#c084fc', '#818cf8', '#a5b4fc'],
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '60%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: false, // <-- Set to false as requested
+                                },
+                                value: {
+                                    color: '#E0E0E0',
+                                    formatter: (val) => val + "%"
+                                }
+                            }
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        colors: '#E0E0E0'
+                    }
+                },
+                tooltip: {
+                    ...baseChartOptions.tooltip,
+                    y: {
+                        formatter: (val) => val + "%"
+                    }
+                }
+            };
+            const chartSegmentation = new ApexCharts(document.querySelector("#chart-segmentation"), chartSegmentationOptions);
+            chartSegmentation.render();
+
+
+            // --- Chart 4: Average Customer Limit by Product ---
+            // Data from Credit card Information.txt
+            // Gold: 288k
+            // Silver: 172k
+            // Platinum: 140k
+            const chartAvgLimitOptions = {
+                ...baseChartOptions,
+                series: [{
+                    name: 'Average Limit',
+                    data: [288000, 172000, 140000] // Gold, Silver, Platinum
+                }],
+                chart: {
+                    ...baseChartOptions.chart,
+                    type: 'bar',
+                    height: 300
+                },
+                colors: ['#818cf8'],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight: '50%',
+                        endingShape: 'rounded',
+                        distributed: true
+                    },
+                },
+                colors: ['#818cf8', '#a5b4fc', '#c084fc'], // Gold, Silver, Platinum
+                dataLabels: {
+                    enabled: true,
+                    textAnchor: 'start',
+                    style: {
+                        colors: ['#1a1a2e']
+                    },
+                    formatter: (val) => {
+                         return (val / 1000).toFixed(0) + 'k';
+                    },
+                    offsetX: 10
+                },
+                xaxis: {
+                    ...baseChartOptions.xaxis,
+                    categories: ['Gold', 'Silver', 'Platinum'],
+                    labels: {
+                        ...baseChartOptions.xaxis.labels,
+                        formatter: (val) => (val / 1000) + 'k'
+                    }
+                },
+                yaxis: {
+                    ...baseChartOptions.yaxis,
+                     labels: {
+                        ...baseChartOptions.yaxis.labels,
+                        formatter: (val) => val // Just show the category name
+                    }
+                },
+                tooltip: {
+                    ...baseChartOptions.tooltip,
+                    y: {
+                        formatter: (val) => "₹" + val.toLocaleString('en-IN')
+                    }
+                },
+                legend: {
+                    show: false
+                }
+            };
+            const chartAvgLimit = new ApexCharts(document.querySelector("#chart-avg-limit"), chartAvgLimitOptions);
+            chartAvgLimit.render();
+        });
+    </script>
+</body>
+</html>
+

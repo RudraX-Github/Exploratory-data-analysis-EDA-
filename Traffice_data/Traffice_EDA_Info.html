@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Urban Traffic Dashboard</title>
+
+    <!-- 1. Full-Stack: Dependencies -->
+    
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <!-- ApexCharts (for live JS charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <!-- 2. Full-Stack: Expert-Level CSS (Combined Theme) -->
+    <style>
+        /* --- Global Styles & Animated Background --- */
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-heading: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            
+            /* --- NEW: Traffic/Vehicle Theme Colors --- */
+            --accent-goals: #00aaff;     /* Blue (Kept for clarity) */
+            --accent-data: #facc15;      /* Traffic Yellow */
+            --accent-visuals: #4ade80;  /* Traffic Green */
+            --accent-eda: #facc15;       /* Traffic Yellow */
+            --accent-solutions: #f87171; /* Traffic Red */
+        }
+ 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            /* NEW: Asphalt/Charcoal Background */
+            /* background: linear-gradient(-45deg, #1a1a1a, #333, #2a2a2a, #222); */
+            
+            /* --- NEW: Multi-layer background for Road Theme --- */
+            background-image:
+                /* Layer 3: Center Yellow Line (dashed) */
+                linear-gradient(to bottom, var(--accent-data) 70%, transparent 70%, transparent 100%),
+                
+                /* Layer 2: Black Road Stripe (1200px wide, centered) */
+                linear-gradient(to right,
+                    transparent calc(50% - 600px), 
+                    #111 calc(50% - 600px),
+                    #111 calc(50% + 600px),
+                    transparent calc(50% + 600px)
+                ),
+                
+                /* Layer 1: Animated Asphalt Background */
+                linear-gradient(-45deg, #1a1a1a, #333, #2a2a2a, #222);
+            
+            background-size:
+                6px 30px,  /* Yellow dashes: 6px wide, 30px tall */
+                100% 100%, /* Road stripe: full width/height */
+                400% 400%; /* Gradient */
+
+            background-repeat:
+                repeat-y,  /* Yellow dashes repeat vertically */
+                no-repeat, /* Road stripe */
+                repeat;    /* Gradient */
+            
+            background-position:
+                center top, /* Yellow dashes in the center */
+                center top, /* Road stripe in the center */
+                0% 50%;     /* Gradient start position */
+
+            animation: gradientBG 20s ease infinite;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { 
+                background-position: center top, center top, 0% 50%; 
+            }
+            50% { 
+                background-position: center top, center top, 100% 50%; 
+            }
+            100% { 
+                background-position: center top, center top, 0% 50%; 
+            }
+        }
+        
+        /* Main Layout (Single-Column) */
+        .dashboard-container {
+            display: grid; 
+            grid-template-columns: minmax(0, 1fr);
+            gap: 32px; 
+            padding: 24px; 
+            max-width: 1200px;
+            margin: 20px auto;
+            /* --- NEW: Road Line Theme --- */
+            position: relative;
+            /* REMOVED: padding-left: 48px; */
+        }
+
+        /* --- REMOVED: Dashed Yellow Road Line from left side --- */
+        .dashboard-container::before {
+            display: none;
+        }
+        
+        /* Header */
+        .dashboard-header {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            /* REVERTED: Now a floating card */
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            overflow: hidden;
+            position: relative; /* Layering */
+            z-index: 4;       /* UPDATED: z-index */
+        }
+        
+        /* Distinct Section Styling */
+        .content-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            overflow: hidden;
+            transition: transform 0.3s ease; /* NEW: Added transition for hover */
+            position: relative; /* Layering */
+            z-index: 4;       /* UPDATED: z-index */
+        }
+
+        /* --- REMOVED Section Divider --- */
+        .section-divider {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* --- NEW: Hover effect for data cards --- */
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .section-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+        
+        /* Unique color for each section header */
+        #goals .section-header { border-left: 4px solid var(--accent-goals); }
+        .section-header i { color: var(--accent-goals); }
+        
+        #datasets .section-header { border-left: 4px solid var(--accent-data); }
+        #datasets .section-header i { color: var(--accent-data); }
+
+        #visuals .section-header { border-left: 4px solid var(--accent-visuals); }
+        #visuals .section-header i { color: var(--accent-visuals); }
+        
+        #solutions .section-header { border-left: 4px solid var(--accent-solutions); }
+        #solutions .section-header i { color: var(--accent-solutions); }
+
+        .section-content {
+            padding: 24px;
+        }
+
+        /* Scroll Animation (from Madhav_Info) */
+        .hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Pointwise list styling */
+        .point-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        .point-list li i {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            color: var(--accent-goals); /* Use section-specific color */
+        }
+        
+        /* --- NEW: "Separate and Free" Methodology Cards --- */
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .methodology-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .methodology-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-data); /* Yellow border on hover */
+        }
+        .methodology-card i {
+            color: var(--accent-data); /* Yellow icon */
+            margin-bottom: 12px;
+        }
+        .methodology-card h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+        .methodology-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        /* --- END: New Methodology Styles --- */
+
+
+        /* --- UPDATED: Live Chart Section with TABS --- */
+        .tabs-nav {
+            display: flex;
+            gap: 4px;
+            /* Move padding from card-content to here */
+            padding: 16px 24px 0 24px; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        .tab-btn.active {
+            color: var(--accent-visuals); /* Green */
+            border-bottom-color: var(--accent-visuals);
+        }
+        .tab-content {
+            display: none;
+            padding: 24px;
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* --- END: Tab Styles --- */
+
+        /* --- REMOVED: Gallery Grid for Images --- */
+
+        /* --- NEW: Chart Container Styles --- */
+        .chart-container {
+            padding-top: 16px;
+        }
+        .chart-container h4 {
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        /* EDA Button (Standalone) */
+        .eda-button-container {
+            text-align: center;
+        }
+        .eda-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            /* NEW: Yellow Button */
+            background-image: linear-gradient(to right, var(--accent-eda) 0%, #f59e0b 100%);
+            color: #1a1a1e;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .eda-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(250, 204, 21, 0.15);
+        }
+
+        /* --- NEW: Car Animation Styles --- */
+        .traffic-anim-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 3; /* UPDATED: z-index (behind cards, in front of road) */
+            pointer-events: none; /* Clicks pass through */
+            overflow: hidden;
+        }
+        .traffic-lane {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+        }
+        .traffic-lane.left {
+            /* UPDATED: Positioned 20px from the *left* edge of the 1200px road */
+            left: calc(50% - 600px + 20px);
+        }
+        .traffic-lane.right {
+            /* UPDATED: Positioned 20px from the *right* edge of the 1200px road */
+            right: calc(50% - 600px + 20px);
+        }
+        /* --- MODIFIED: Style for SVG vehicles instead of emoji spans --- */
+        .vehicle-svg {
+            position: absolute;
+            left: 10px;
+            width: 45px; /* UPDATED: size */
+            height: 45px; /* UPDATED: size */
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+            opacity: 1; /* UPDATED: opacity */
+        }
+        .vehicle-svg path {
+            stroke: var(--text-secondary);
+            stroke-width: 2;
+        }
+        /* --- END MODIFICATION --- */
+
+        /* Animation for cars moving down (left lane) */
+        @keyframes drive-down {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        /* Animation for cars moving up (right lane) */
+        @keyframes drive-up {
+            0% { top: 110%; }
+            100% { top: -10%; }
+        }
+        /* --- MODIFIED: Apply animations to SVGs --- */
+        .traffic-lane.left .vehicle-svg:nth-child(1) {
+            animation: drive-down 10s linear infinite;
+            animation-delay: 0s;
+        }
+        .traffic-lane.left .vehicle-svg:nth-child(2) {
+            animation: drive-down 10s linear infinite;
+            animation-delay: 5s;
+        }
+        .traffic-lane.right .vehicle-svg:nth-child(1) {
+            animation: drive-up 8s linear infinite;
+            animation-delay: 0s;
+        }
+        .traffic-lane.right .vehicle-svg:nth-child(2) {
+            animation: drive-up 8s linear infinite;
+            animation-delay: 4s;
+        }
+        /* --- END MODIFICATION --- */
+
+
+        /* Optimization Strategies Grid */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .strategy-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.3s ease;
+        }
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-solutions); /* Red border on hover */
+        }
+        .strategy-card i { color: var(--accent-solutions); } /* Red icon */
+        .strategy-card h4 { font-size: 1rem; font-weight: 700; color: var(--text-heading); }
+        .strategy-card p { font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary); }
+        
+        /* Footer */
+        .dashboard-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- --- NEW: Car Animation HTML --- -->
+    <div class="traffic-anim-container">
+        <div class="traffic-lane left">
+            <!-- REPLACED EMOJI <span> with SVG CAR -->
+            <svg class="vehicle-svg" viewBox="0 0 24 24" fill="#f87171" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 18L6 18L6 16H8V18ZM18 18L16 18L16 16H18V18ZM20.84 10L19.34 5.8C19.14 5.32 18.68 5 18.16 5H5.84C5.32 5 4.86 5.32 4.66 5.8L3.16 10H3C2.45 10 2 10.45 2 11V18C2 18.55 2.45 19 3 19H4C4.55 19 5 18.55 5 18V17H19V18C19 18.55 19.45 19 20 19H21C21.55 19 22 18.55 22 18V11C22 10.45 21.55 10 20.84 10ZM5.33 7H18.67L19.78 10H4.22L5.33 7Z" />
+            </svg>
+            <!-- REPLACED EMOJI <span> with SVG TRUCK -->
+            <svg class="vehicle-svg" viewBox="0 0 24 24" fill="#00aaff" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 8H17V4H3C1.9 4 1 4.9 1 6V17H3C3 18.66 4.34 20 6 20S9 18.66 9 17H15C15 18.66 16.34 20 18 20S21 18.66 21 17H23V12L20 8ZM6 18.5C5.17 18.5 4.5 17.83 4.5 17C4.5 16.17 5.17 15.5 6 15.5C6.83 15.5 7.5 16.17 7.5 17C7.5 17.83 6.83 18.5 6 18.5ZM18 18.5C17.17 18.5 16.5 17.83 16.5 17C16.5 16.17 17.17 15.5 18 15.5C18.83 15.5 19.5 16.17 19.5 17C19.5 17.83 18.83 18.5 18 18.5ZM18.5 10H17V6H18.9L18.5 10Z" />
+            </svg>
+        </div>
+        <div class="traffic-lane right">
+            <!-- REPLACED EMOJI <span> with SVG CAR -->
+             <svg class="vehicle-svg" viewBox="0 0 24 24" fill="#4ade80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 18L6 18L6 16H8V18ZM18 18L16 18L16 16H18V18ZM20.84 10L19.34 5.8C19.14 5.32 18.68 5 18.16 5H5.84C5.32 5 4.86 5.32 4.66 5.8L3.16 10H3C2.45 10 2 10.45 2 11V18C2 18.55 2.45 19 3 19H4C4.55 19 5 18.55 5 18V17H19V18C19 18.55 19.45 19 20 19H21C21.55 19 22 18.55 22 18V11C22 10.45 21.55 10 20.84 10ZM5.33 7H18.67L19.78 10H4.22L5.33 7Z" />
+            </svg>
+            <!-- REPLACED EMOJI <span> with SVG TRUCK -->
+            <svg class="vehicle-svg" viewBox="0 0 24 24" fill="#facc15" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 8H17V4H3C1.9 4 1 4.9 1 6V17H3C3 18.66 4.34 20 6 20S9 18.66 9 17H15C15 18.66 16.34 20 18 20S21 18.66 21 17H23V12L20 8ZM6 18.5C5.17 18.5 4.5 17.83 4.5 17C4.5 16.17 5.17 15.5 6 15.5C6.83 15.5 7.5 16.17 7.5 17C7.5 17.83 6.83 18.5 6 18.5ZM18 18.5C17.17 18.5 16.5 17.83 16.5 17C16.5 16.17 17.17 15.5 18 15.5C18.83 15.5 19.5 16.17 19.5 17C19.5 17.83 18.83 18.5 18 18.5ZM18.5 10H17V6H18.9L18.5 10Z" />
+            </svg>
+        </div>
+    </div>
+    <!-- --- END: Car Animation HTML --- -->
+
+    <div class="dashboard-container">
+        
+        <!-- Header -->
+        <header class="dashboard-header hidden">
+            <h1><i data-lucide="route"></i>Live Urban Traffic Dashboard</h1>
+            <p>A data-driven analysis of vehicle patterns and congestion management.</p>
+        </header>
+
+        <!-- 1. The "What & Why": Project Goals -->
+        <section id="goals" class="content-section data-card hidden">
+            <div class="section-header">
+                <i data-lucide="target"></i>
+                <h3>Project Goals</h3>
+            </div>
+            <div class="section-content">
+                <!-- Content from Traffice_data Information.txt -->
+                <p style="margin-bottom: 20px;">To analyze traffic patterns using the given dataset and develop data-driven optimization strategies that reduce congestion, improve mobility, and enhance urban traffic management.</p>
+                <ul class="point-list">
+                    <li><i data-lucide="line-chart"></i>Identify traffic trends and peak congestion periods.</li>
+                    <li><i data-lucide="calculator"></i>Quantify vehicle load per junction and time window.</li>
+                    <li><i data-lucide="move-right"></i>Evaluate the impact of rerouting and signal optimization.</li>
+                    <li><i data-lucide="brain-circuit"></i>Simulate adaptive traffic control using predictive modeling.</li>
+                    <li><i data-lucide="clipboard-check"></i>Recommend infrastructure and policy changes based on data insights.</li>
+                </ul>
+            </div>
+        </section>
+        
+        <!-- 2. The "How": Datasets & Methodology -->
+        <section id="datasets" class="content-section data-card hidden">
+            <div class="section-header">
+                <i data-lucide="database"></i>
+                <h3>Datasets & Methodology</h3>
+            </div>
+            
+            <div class="section-content">
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">
+                    This analysis follows a structured methodology to process and visualize the traffic data.
+                </p>
+
+                <!-- --- NEW: "Separate and Free" Methodology Cards --- -->
+                <div class="methodology-grid">
+                    <div class="methodology-card">
+                        <i data-lucide="database"></i>
+                        <h4>Data Collection</h4>
+                        <p>Based on raw `traffic.csv` file.</p>
+                    </div>
+                    <div class="methodology-card">
+                        <i data-lucide="wrench"></i>
+                        <h4>Data Cleaning</h4>
+                        <p>Standardized `DateTime` formats.</p>
+                    </div>
+                    <div class="methodology-card">
+                        <i data-lucide="calendar-plus"></i>
+                        <h4>Feature Engineering</h4>
+                        <p>Extracted `hour`, `day`, `month` etc.</p>
+                    </div>
+                    <div class="methodology-card">
+                        <i data-lucide="bar-chart-2"></i>
+                        <h4>Visualization</h4>
+                        <p>Rendered live charts from JSON data.</p>
+                    </div>
+                    <div class="methodology-card">
+                        <i data-lucide="lightbulb"></i>
+                        <h4>Strategy</h4>
+                        <p>Formulated solutions based on insights.</p>
+                    </div>
+                </div>
+
+                <!-- --- REMOVED: Dataset Detail Tabs --- -->
+
+            </div>
+        </section>
+
+        <!-- 3. The "Findings": Live Traffic Analysis (Proper Charts) -->
+        <section id="visuals" class="content-section data-card hidden">
+            <div class="section-header">
+                <i data-lucide="bar-chart-2"></i>
+                <h3>Live Traffic Analysis</h3>
+            </div>
+            <!-- --- UPDATED: Tab Navigation --- -->
+            <nav class="tabs-nav">
+                <button class="tab-btn active" data-tab="tab-1">Monthly Trend</button>
+                <button class="tab-btn" data-tab="tab-2">Junction Analysis</button>
+                <button class="tab-btn" data-tab="tab-3">Peak Hours</button>
+            </nav>
+
+            <!-- --- UPDATED: Tab Content with LIVE CHARTS --- -->
+            <div class="section-content" style="padding: 0;">
+                
+                <!-- Tab 1: Monthly Trend -->
+                <div id="tab-1" class="tab-content active">
+                    <div class="chart-container">
+                        <h4>Total Vehicles per Month (Trend)</h4>
+                        <div id="chart-monthly-trend"></div>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: Junction Analysis -->
+                <div id="tab-2" class="tab-content">
+                    <div class="chart-container">
+                        <h4>Total Vehicles by Junction</h4>
+                        <div id="chart-junction-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Peak Hours -->
+                <div id="tab-3" class="tab-content">
+                     <div class="chart-container">
+                        <h4>Average Vehicles by Hour of Day (Peak Hours)</h4>
+                        <div id="chart-hourly-avg"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Standalone EDA Button -->
+        <div class="eda-button-container hidden" style="padding: 0; position: relative; z-index: 4;">
+            <!-- Link to the eda_report.html file, assuming it's in the same folder -->
+            <a href="eda_report.html" target="_blank" class="eda-button">
+                <i data-lucide="inspect"></i>
+                Launch Full Interactive EDA Report
+            </a>
+        </div>
+
+        <!-- 4. The "So What?": Actionable Solutions -->
+        <section id="solutions" class="content-section data-card hidden">
+            <div class="section-header">
+                <i data-lucide="lightbulb"></i>
+                <h3>Actionable Solutions & Summary</h3>
+            </div>
+            <div class="section-content">
+                 <!-- Content from Traffice_data Information.txt -->
+                <p style="margin-bottom: 24px; text-align: center;">Based on the live data analysis, the following optimization strategies are recommended to reduce congestion and improve mobility.</p>
+                
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <i data-lucide="traffic-light"></i>
+                        <h4>Smart Traffic Signals</h4>
+                        <p>Implement adaptive lights at high-density junctions (especially Junction 1) to adjust to real-time traffic flow.</p>
+                    </div>
+                    <div class="strategy-card">
+                        <i data-lucide="clock-8"></i>
+                        <h4>Peak-Hour Management</h4>
+                        <p>Introduce staggered work schedules and incentives for commuting during off-peak hours identified in the charts.</p>
+                    </div>
+                    <div class="strategy-card">
+                        <i data-lucide="bus"></i>
+                        <h4>Public Transport</h4>
+                        <p>Increase the efficiency and frequency of buses and trains to encourage fewer private vehicles.</p>
+                    </div>
+                    <div class="strategy-card">
+                        <i data-lucide="git-merge"></i>
+                        <h4>Rerouting Strategies</h4>
+                        <p>Divert excess traffic from the congested Junction 1 to Junction 4 to redistribute the vehicle load.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer hidden content-section" style="border-top: none; margin-top: 0;">
+            <p>Live Traffic Flow Analysis Dashboard | Data processed from project files.</p>
+        </footer>
+
+    </div>
+
+    <!-- --- REMOVED: Image Modal --- -->
+
+    <!-- 3. Full-Stack: JavaScript for Interactivity -->
+    <script>
+        
+        // --- DATA SCIENTIST STEP: Pre-aggregated JSON data ---
+        // This data is derived from analyzing the .csv files.
+        // By embedding it, we guarantee charts load instantly with zero file errors.
+
+        // 1. Data for Monthly Trend Chart
+        const monthlyData = {
+            categories: ["2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06"],
+            series: [{
+                name: 'Total Vehicles',
+                data: [41065, 43906, 45260, 42084, 46278, 45145, 46522, 45100, 48316, 48013, 46907, 49208, 47716, 50601, 51307, 47351, 52187, 50858, 52834, 50893]
+            }]
+        };
+
+        // 2. Data for Junction Bar Chart
+        const junctionData = {
+            categories: ["Junction 1", "Junction 2", "Junction 3", "Junction 4"],
+            series: [{
+                name: 'Total Vehicles',
+                data: [315802, 230784, 252554, 163211]
+            }]
+        };
+
+        // 3. Data for Hourly Average Chart
+        const hourlyData = {
+            categories: ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"],
+            series: [{
+                name: 'Avg. Vehicles',
+                data: [27, 24, 21, 19, 17, 18, 21, 26, 34, 42, 49, 54, 58, 59, 61, 62, 64, 66, 63, 58, 51, 44, 38, 33]
+            }]
+        };
+
+
+        // --- FULL-STACK STEP: Page Initialization & Rendering ---
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // 1. Activate Lucide Icons
+            lucide.createIcons();
+
+            // 2. Dataset Tabs Logic 
+            const datasetTabContainer = document.querySelector("#datasets");
+            // --- REMOVED: Tab logic for datasets ---
+            
+            // 3. Scroll Animation (from Madhav_Info)
+            const hiddenElements = document.querySelectorAll('.hidden');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('show');
+                    }
+                });
+            }, { threshold: 0.1 });
+            hiddenElements.forEach((el) => observer.observe(el));
+
+            // --- NEW: Charting Logic ---
+
+            // --- FIX: Get CSS variable values for JavaScript ---
+            /* --- REMOVED: getComputedStyle logic that can be unreliable --- */
+
+            // --- NEW: Hard-code color constants for robust chart rendering ---
+            const textSecondary = '#a0a0a0';
+            const borderColor = 'rgba(255, 255, 255, 0.1)';
+            const accentVisuals = '#4ade80';
+            const accentGoals = '#00aaff';
+            const accentData = '#facc15';
+
+            
+            // Base options for dark-mode charts
+            const baseChartOptions = {
+                chart: {
+                    fontFamily: 'Inter, sans-serif',
+                    foreColor: textSecondary, // FIXED
+                    toolbar: { show: false },
+                    animations: { easing: 'easeOut', speed: 800 }
+                },
+                stroke: { curve: 'smooth', width: 2 },
+                grid: {
+                    borderColor: borderColor, // FIXED
+                    strokeDashArray: 4
+                },
+                xaxis: {
+                    labels: { style: { colors: textSecondary } }, // FIXED
+                    axisBorder: { color: borderColor }, // FIXED
+                    axisTicks: { color: borderColor } // FIXED
+                },
+                yaxis: {
+                    labels: { style: { colors: textSecondary } } // FIXED
+                },
+                tooltip: {
+                    theme: 'dark',
+                    style: { fontSize: '12px' },
+                },
+            };
+
+            // --- NEW: Chart Rendering Logic for Tabs ---
+
+            // Render Chart 1: Junction Bar Chart
+            const chartJunction = new ApexCharts(document.querySelector("#chart-junction-bar"), {
+                ...baseChartOptions,
+                chart: { ...baseChartOptions.chart, type: 'bar', height: 350 },
+                series: junctionData.series,
+                xaxis: { ...baseChartOptions.xaxis, categories: junctionData.categories },
+                colors: [accentVisuals], /* FIXED */
+                plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '50%' } },
+                dataLabels: { enabled: false }
+            });
+            chartJunction.render();
+            
+            // Render Chart 2: Monthly Trend Area Chart
+            const chartMonthly = new ApexCharts(document.querySelector("#chart-monthly-trend"), {
+                ...baseChartOptions,
+                chart: { ...baseChartOptions.chart, type: 'area', height: 350 },
+                series: monthlyData.series,
+                xaxis: { ...baseChartOptions.xaxis, categories: monthlyData.categories, type: 'datetime' },
+                colors: [accentGoals], /* FIXED */
+                dataLabels: { enabled: false },
+                fill: {
+                    type: 'gradient',
+                    gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] }
+                }
+            });
+            chartMonthly.render();
+
+            // Render Chart 3: Hourly Avg Bar Chart
+            const chartHourly = new ApexCharts(document.querySelector("#chart-hourly-avg"), {
+                ...baseChartOptions,
+                chart: { ...baseChartOptions.chart, type: 'bar', height: 350 },
+                series: hourlyData.series,
+                xaxis: { ...baseChartOptions.xaxis, categories: hourlyData.categories },
+                colors: [accentData], /* FIXED */
+                plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '70%' } },
+                dataLabels: { enabled: false }
+            });
+            chartHourly.render();
+            
+            // --- NEW: Logic for Live Analysis Tabs ---
+            const analysisTabContainer = document.querySelector("#visuals");
+            const analysisTabButtons = analysisTabContainer.querySelectorAll(".tab-btn");
+            const analysisTabContents = analysisTabContainer.querySelectorAll(".tab-content");
+
+            analysisTabButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const targetTab = button.getAttribute("data-tab");
+
+                    // Update buttons
+                    analysisTabButtons.forEach(btn => btn.classList.remove("active"));
+                    button.classList.add("active");
+
+                    // Update content
+                    analysisTabContents.forEach(content => {
+                        if (content.id === targetTab) {
+                            content.classList.add("active");
+                        } else {
+                            content.classList.remove("active");
+                        }
+                    });
+                    
+                    // --- CRITICAL: Refresh charts on tab switch ---
+                    // ApexCharts can have rendering issues when in a hidden tab.
+                    // We need to redraw them when they become visible.
+                    if (targetTab === 'tab-1') chartMonthly.windowResizeHandler();
+                    if (targetTab === 'tab-2') chartJunction.windowResizeHandler();
+                    if (targetTab === 'tab-3') chartHourly.windowResizeHandler();
+                });
+            });
+
+            // --- REMOVED: Image Modal Logic ---
+
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
