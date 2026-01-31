@@ -143,6 +143,16 @@
             border-radius: 0.4rem; border: 1px solid rgba(255, 255, 255, 0.1);
             white-space: nowrap;
         }
+        .metric-badge {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        .metric-value { font-size: 1.5rem; font-weight: 800; color: #fff; display: block; line-height: 1; margin-bottom: 0.25rem; }
+        .metric-label { font-size: 0.6rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
 
         .infinity-container {
             width: 100%; position: relative; border-radius: 2rem; overflow: hidden;
@@ -174,12 +184,39 @@
             width: 8px; height: 8px; border-radius: 50%;
             background: var(--brand-blue);
         }
+
+        /* Mobile Menu Transitions */
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+        #mobile-menu.closed {
+            transform: translateX(100%);
+        }
+        #mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        /* Sound Activation Toast */
+        #sound-toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: rgba(16, 185, 129, 0.9); color: white;
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100; pointer-events: none;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #sound-toast.active { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-blue-500/30">
 
     <canvas id="neural-canvas"></canvas>
     <div class="grid-overlay"></div>
+
+    <!-- Sound Active Notification -->
+    <div id="sound-toast"><i data-lucide="volume-2" class="w-4 h-4"></i> Audio Active</div>
 
     <header id="navbar" class="fixed top-0 z-50 w-full py-6">
         <nav class="max-w-7xl mx-auto px-6">
@@ -201,10 +238,28 @@
                     <button onclick="router('casestudies')" class="nav-link text-xs font-bold text-slate-400 hover:text-white transition-all tracking-widest uppercase">Case Studies</button>
                     <button onclick="router('contact')" class="px-6 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-all">Book Consult</button>
                 </div>
-                <div class="md:hidden text-white"><i data-lucide="menu" class="w-6 h-6"></i></div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden text-white cursor-pointer hover:text-blue-400 transition-colors" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </div>
             </div>
         </nav>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-slate-900/95 backdrop-blur-xl closed md:hidden flex flex-col items-center justify-center gap-8">
+        <button class="absolute top-8 right-8 text-white hover:text-rose-500 transition-colors" onclick="toggleMobileMenu()">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <button onclick="router('home')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">Overview</button>
+        <button onclick="router('about')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">About</button>
+        <button onclick="router('services')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">Expertise</button>
+        <button onclick="router('ailab')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">AI Lab</button>
+        <button onclick="router('portfolio')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">Catalog</button>
+        <button onclick="router('casestudies')" class="text-2xl font-bold text-white uppercase tracking-widest hover:text-blue-500 transition-colors">Case Studies</button>
+        <button onclick="router('contact')" class="px-8 py-3 bg-blue-600 text-white font-bold uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Book Consult</button>
+    </div>
 
     <main class="max-w-7xl mx-auto px-6">
 
@@ -252,13 +307,19 @@
 
                 <div class="relative">
                     <div class="infinity-container">
-                        <video id="preview-video-1" class="media-infinity smart-video shadow-[0_0_80px_rgba(0,0,0,0.8)]" playsinline loop autoplay>
+                        <!-- 
+                            UPDATE: Removed 'muted'. 
+                            Browser policy prevents autoplay w/ sound without interaction.
+                            Workaround implemented in JS: Wait for first interaction then play.
+                        -->
+                        <video id="preview-video-1" class="media-infinity smart-video shadow-[0_0_80px_rgba(0,0,0,0.8)]" playsinline loop>
                             <source src="https://raw.githubusercontent.com/RudraX-Github/Portfolio-Page/main/Visuals/Tagline.mp4" type="video/mp4">
                         </video>
                         <div class="infinity-scanline"></div>
                         <!-- Audio Toggle Button -->
                         <button onclick="toggleAudio('preview-video-1', this)" class="absolute bottom-6 right-6 z-20 p-3 bg-slate-900/80 rounded-full text-white hover:bg-blue-600 transition-colors border border-white/10">
-                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            <!-- Initial icon will be volume-x because video starts muted/paused technically -->
+                            <i data-lucide="volume-x" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
@@ -505,7 +566,7 @@
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">A production-grade regression system predicting NYC fares using historical trip data.</p>
                     </div>
                     <div class="flex gap-3">
-                        <a href="https://appgeentexi-knxvdxa73fejth6yqevnxv.streamlit.app/" target="_blank" class="flex-1 py-4 bg-blue-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 block shadow-lg">Launch</a>
+                        <a href="https://appgeentexi-knxvdxa73fejth6yqevnxv.streamlit.app/" target="_blank" rel="noopener noreferrer" class="flex-1 py-4 bg-blue-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 block shadow-lg">Launch</a>
                         <button onclick="router('casestudies')" class="flex-1 py-4 bg-white/5 border border-white/10 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 block">Intel</button>
                     </div>
                 </div>
@@ -518,7 +579,7 @@
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">Intelligent recommendation portal utilizing vector space modeling.</p>
                     </div>
                     <div class="flex gap-3">
-                        <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" class="flex-1 py-4 bg-indigo-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-700 block shadow-lg">Launch</a>
+                        <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" rel="noopener noreferrer" class="flex-1 py-4 bg-indigo-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-700 block shadow-lg">Launch</a>
                         <button onclick="router('casestudies')" class="flex-1 py-4 bg-white/5 border border-white/10 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 block">Intel</button>
                     </div>
                 </div>
@@ -530,7 +591,7 @@
                         <h3 class="text-2xl font-bold mb-3 uppercase tracking-tight">NLP Suite: Text</h3>
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">Linguistic processor featuring fine-tuned transformers for sentiment analysis.</p>
                     </div>
-                    <a href="https://appnlpsuittext-hyr5gicoe69kxhfzzpkqe4.streamlit.app/" target="_blank" class="w-full py-4 bg-emerald-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-700 block shadow-lg">Execute Node</a>
+                    <a href="https://appnlpsuittext-hyr5gicoe69kxhfzzpkqe4.streamlit.app/" target="_blank" rel="noopener noreferrer" class="w-full py-4 bg-emerald-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-700 block shadow-lg">Execute Node</a>
                 </div>
 
                 <!-- Node 4: NLP Voice (New) -->
@@ -540,7 +601,7 @@
                         <h3 class="text-2xl font-bold mb-3 uppercase tracking-tight">Voice Intelligence</h3>
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">Real-time acoustic analysis pipeline capable of Speech-to-Text and waveform visualization.</p>
                     </div>
-                    <a href="https://appnlpvoice-ehhxjasrygpnasfo9ese36.streamlit.app/" target="_blank" class="w-full py-4 bg-amber-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-700 block shadow-lg">Execute Node</a>
+                    <a href="https://appnlpvoice-ehhxjasrygpnasfo9ese36.streamlit.app/" target="_blank" rel="noopener noreferrer" class="w-full py-4 bg-amber-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-700 block shadow-lg">Execute Node</a>
                 </div>
 
                 <!-- Node 5: C++ Cyber Forge (New) -->
@@ -550,7 +611,7 @@
                         <h3 class="text-2xl font-bold mb-3 uppercase tracking-tight">C++ Cyber Forge</h3>
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">WebAssembly-powered hub for demonstrating high-performance computing modules in the browser.</p>
                     </div>
-                    <a href="https://app-cyber-forge.vercel.app/" target="_blank" class="w-full py-4 bg-cyan-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-cyan-700 block shadow-lg">Execute Node</a>
+                    <a href="https://app-cyber-forge.vercel.app/" target="_blank" rel="noopener noreferrer" class="w-full py-4 bg-cyan-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-cyan-700 block shadow-lg">Execute Node</a>
                 </div>
 
                 <!-- Node 6: DS Exam Portal (New) -->
@@ -560,7 +621,7 @@
                         <h3 class="text-2xl font-bold mb-3 uppercase tracking-tight">DS Exam Portal</h3>
                         <p class="text-xs text-slate-400 mb-6 leading-relaxed">Interactive educational platform for testing and validating Data Science competencies.</p>
                     </div>
-                    <a href="https://exam-app-liart.vercel.app/" target="_blank" class="w-full py-4 bg-rose-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-700 block shadow-lg">Execute Node</a>
+                    <a href="https://exam-app-liart.vercel.app/" target="_blank" rel="noopener noreferrer" class="w-full py-4 bg-rose-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-700 block shadow-lg">Execute Node</a>
                 </div>
             </div>
         </div>
@@ -580,31 +641,31 @@
                     <h4 class="text-xl font-bold text-white mb-2">CineMatch Engine</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">A sophisticated content-based filtering system. It utilizes vector space modeling (TF-IDF/CountVectorizer) and cosine similarity to recommend movies based on shared plot, genre, and cast metadata. Features a React-like interactive UI built with Streamlit.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-blue-300">Python</span><span class="stack-badge text-blue-300">Scikit-Learn</span><span class="stack-badge text-blue-300">Streamlit</span></div>
-                    <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" class="text-xs font-bold text-blue-400 hover:underline">Launch App</a>
+                    <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-blue-400 hover:underline">Launch App</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">NLP Suite: Text</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">A multi-functional linguistic processor featuring fine-tuned transformers. Capable of performing sentiment analysis, text summarization, and named entity recognition on large datasets. Optimized for CPU inference.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-emerald-300">HuggingFace</span><span class="stack-badge text-emerald-300">Transformers</span><span class="stack-badge text-emerald-300">PyTorch</span></div>
-                    <a href="https://appnlpsuittext-hyr5gicoe69kxhfzzpkqe4.streamlit.app/" target="_blank" class="text-xs font-bold text-emerald-400 hover:underline">Launch App</a>
+                    <a href="https://appnlpsuittext-hyr5gicoe69kxhfzzpkqe4.streamlit.app/" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-emerald-400 hover:underline">Launch App</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">NLP Suite: Voice</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Real-time speech-to-text pipeline. It includes acoustic feature extraction (MFCCs, Mel Spectrograms) and dynamic waveform visualization. Designed for analyzing voice data streams.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-amber-300">SpeechRecognition</span><span class="stack-badge text-amber-300">Librosa</span><span class="stack-badge text-amber-300">Audio Processing</span></div>
-                    <a href="https://appnlpvoice-ehhxjasrygpnasfo9ese36.streamlit.app/" target="_blank" class="text-xs font-bold text-amber-400 hover:underline">Launch App</a>
+                    <a href="https://appnlpvoice-ehhxjasrygpnasfo9ese36.streamlit.app/" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-amber-400 hover:underline">Launch App</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">C++ Cyber Forge</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">A demonstration hub for high-performance computing. Features C++ modules compiled to WebAssembly (Wasm) for near-native execution speeds directly in the browser, bypassing JavaScript performance bottlenecks.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-cyan-300">C++</span><span class="stack-badge text-cyan-300">WebAssembly</span><span class="stack-badge text-cyan-300">Emscripten</span></div>
-                    <a href="https://app-cyber-forge.vercel.app/" target="_blank" class="text-xs font-bold text-cyan-400 hover:underline">Launch App</a>
+                    <a href="https://app-cyber-forge.vercel.app/" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-cyan-400 hover:underline">Launch App</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">DS Exam Portal</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">An interactive educational platform designed for testing data science competencies. Features automated grading logic, randomized question banks, and instant feedback loops for students.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">JavaScript</span><span class="stack-badge text-rose-300">Logic</span><span class="stack-badge text-rose-300">Education</span></div>
-                    <a href="https://exam-app-liart.vercel.app/" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">Launch App</a>
+                    <a href="https://exam-app-liart.vercel.app/" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">Launch App</a>
                 </div>
             </div>
 
@@ -615,25 +676,25 @@
                     <h4 class="text-xl font-bold text-white mb-2">AgriCast360</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">A supply chain risk mitigation tool analyzing 15k+ pricing nodes. It uses historical data to forecast agricultural market trends and visualize price volatility across different regions.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-emerald-300">Power BI</span><span class="stack-badge text-emerald-300">DAX</span><span class="stack-badge text-emerald-300">Data Modeling</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/AgriCast360/AgriCast360.html" target="_blank" class="text-xs font-bold text-white hover:underline">View Analytics</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/AgriCast360/AgriCast360.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-white hover:underline">View Analytics</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Madhav Ecommerce</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Comprehensive profitability dashboard tracking regional sales performance, payment method preferences, and customer acquisition costs (CAC) for an e-commerce platform.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-emerald-300">Power BI</span><span class="stack-badge text-emerald-300">Business Logic</span><span class="stack-badge text-emerald-300">KPIs</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/Madhav%20Ecommarce/Madhav_Info.html" target="_blank" class="text-xs font-bold text-white hover:underline">View Analytics</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/Madhav%20Ecommarce/Madhav_Info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-white hover:underline">View Analytics</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Airline Delays</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Operational dashboard identifying root causes of flight cancellations and delay patterns across US airports. Visualizes impact of weather, carrier issues, and national aviation system delays.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-emerald-300">Power BI</span><span class="stack-badge text-emerald-300">Geospatial</span><span class="stack-badge text-emerald-300">Time-Series</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/US%202023%20Civil%20Flights%2C%20delays%2C%20meteo%20and%20aircrafts/US_Info.html" target="_blank" class="text-xs font-bold text-white hover:underline">View Analytics</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Visualization-Power-BI-/main/US%202023%20Civil%20Flights%2C%20delays%2C%20meteo%20and%20aircrafts/US_Info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-white hover:underline">View Analytics</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Urban Traffic</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Visualization of congestion patterns to optimize city traffic flow. Uses heatmaps and sensor data analysis to identify bottlenecks during peak hours.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-emerald-300">EDA</span><span class="stack-badge text-emerald-300">Python</span><span class="stack-badge text-emerald-300">Heatmaps</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Traffice_data/Traffice_EDA_Info.html" target="_blank" class="text-xs font-bold text-white hover:underline">View Analytics</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Traffice_data/Traffice_EDA_Info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-white hover:underline">View Analytics</a>
                 </div>
             </div>
 
@@ -644,151 +705,165 @@
                     <h4 class="text-xl font-bold text-white mb-2">Nirkhan Surveillance</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Multi-threaded IP camera system. Features real-time human pose estimation using MediaPipe and automated alerting logic for security monitoring applications.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">OpenCV</span><span class="stack-badge text-rose-300">MediaPipe</span><span class="stack-badge text-rose-300">Multithreading</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Nirikhsan_Deep/main/info.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">Technical Spec</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Nirikhsan_Deep/main/info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">Technical Spec</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">NYC Fare Prediction</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Ensemble regression model (XGBoost) for estimating taxi trip costs. Achieves high accuracy by incorporating spatial data, time-of-day logic, and borough-specific rules.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">XGBoost</span><span class="stack-badge text-rose-300">Regression</span><span class="stack-badge text-rose-300">Pandas</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Machine-Learning/main/Geen_Texi/Green_Texi_Info.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">Model Report</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Machine-Learning/main/Geen_Texi/Green_Texi_Info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">Model Report</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Credit Risk Analysis</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Deep dive Exploratory Data Analysis (EDA) into customer spending behaviors. Identifies default risks and creditworthiness using statistical correlation and visualization.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">EDA</span><span class="stack-badge text-rose-300">Statistics</span><span class="stack-badge text-rose-300">Seaborn</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/Credit_EDA_Info.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">View Analysis</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Exploratory-data-analysis-EDA-/main/Credit%20Card-EDA/Credit_EDA_Info.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">View Analysis</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Enterprise Scrapers</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Parallel processing bots for law firm data extraction. Capable of handling CAPTCHAs, managing sessions, and structuring unstructured HTML data into clean databases.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">Selenium</span><span class="stack-badge text-rose-300">Automation</span><span class="stack-badge text-rose-300">Botting</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Web_Scrapers/main/Scrapper.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">View Source</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Web_Scrapers/main/Scrapper.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">View Source</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">NLP Suite Research</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Technical whitepaper documenting the development lifecycle of the NLP Suite. Details the fine-tuning process of transformer models and performance benchmarks.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">Research</span><span class="stack-badge text-rose-300">Documentation</span><span class="stack-badge text-rose-300">LLMs</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/Strimlit/main/NLP%20Suit_Text/Index_NLP%20Suite%20PRO.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">Read Paper</a>
+                    <a href="https://raw.githack.com/RudraX-Github/Strimlit/main/NLP%20Suit_Text/Index_NLP%20Suite%20PRO.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">Read Paper</a>
                 </div>
                 <div class="cyber-card p-8 group hover:animate-pulse">
                     <h4 class="text-xl font-bold text-white mb-2">Voice NLP Timeline</h4>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">Development log for the speech synthesis engine. Details the challenges of acoustic feature extraction and the solutions implemented for real-time processing.</p>
                     <div class="flex flex-wrap gap-2 mb-6"><span class="stack-badge text-rose-300">Audio</span><span class="stack-badge text-rose-300">DevLog</span><span class="stack-badge text-rose-300">Signal Processing</span></div>
-                    <a href="https://raw.githack.com/RudraX-Github/NLP/main/Voice%20Processing/Voice%20NLP%20Suit.html" target="_blank" class="text-xs font-bold text-rose-400 hover:underline">View Log</a>
+                    <a href="https://raw.githack.com/RudraX-Github/NLP/main/Voice%20Processing/Voice%20NLP%20Suit.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-rose-400 hover:underline">View Log</a>
                 </div>
             </div>
         </div>
 
-        <!-- ================= PAGE: CASE STUDIES ================= -->
+        <!-- ================= PAGE: CASE STUDIES (REMASTERED) ================= -->
         <div id="page-casestudies" class="app-page">
-            <div class="text-center mb-12">
-                <span class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Deep Dive</span>
-                <h2 class="text-5xl md:text-6xl font-black tracking-tighter uppercase">Engineering Logs</h2>
-                <div class="w-24 h-1 bg-white mx-auto mt-4 rounded-full opacity-10"></div>
+            <div class="text-center mb-16">
+                <span class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Engineering Logs</span>
+                <h2 class="text-5xl md:text-6xl font-black tracking-tighter uppercase">Case Files</h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto rounded-full mt-4"></div>
             </div>
 
-            <!-- CASE STUDY 1: GREEN TAXI -->
-            <div class="max-w-6xl mx-auto space-y-12">
-                <div class="space-y-4 border-b border-white/10 pb-8">
-                    <div class="flex items-center gap-4">
-                        <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest rounded-full">Case Study 01</span>
-                    </div>
-                    <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter">NYC Smart <span class="text-emerald-500">Predictor</span></h1>
-                    <p class="text-lg text-slate-400 font-light max-w-3xl">
-                        Predicting the Pulse of New York City. Transforming millions of raw GPS logs into 97% accurate fare predictions using XGBoost and 3D Spatial Mapping.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div class="lg:col-span-2 space-y-12">
-                        <div class="cyber-card p-8 bg-blue-900/5 border-blue-500/20">
-                            <h3 class="text-xl font-bold mb-4 text-white uppercase tracking-tight"><i data-lucide="target" class="inline-block w-5 h-5 mr-2 text-blue-400"></i>Mission Directive</h3>
-                            <p class="text-slate-400 leading-relaxed mb-6 text-sm">
-                                The objective was to architect a machine learning pipeline capable of decoding the complex pulse of NYC transit. By analyzing factors such as distance, traffic logic, and borough-specific rules, we engineered a system that doesn't just guess fares—it understands the context of every trip.
-                            </p>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div class="px-4 py-3 bg-blue-500/10 rounded-lg border border-blue-500/20 text-center"><span class="block text-2xl font-bold text-white">97%</span><span class="text-[10px] uppercase tracking-widest text-blue-400">R² Score</span></div>
-                                <div class="px-4 py-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-center"><span class="block text-2xl font-bold text-white">100k+</span><span class="text-[10px] uppercase tracking-widest text-emerald-400">Data Points</span></div>
-                                <div class="px-4 py-3 bg-purple-500/10 rounded-lg border border-purple-500/20 text-center"><span class="block text-2xl font-bold text-white">40+</span><span class="text-[10px] uppercase tracking-widest text-purple-400">Landmarks</span></div>
-                                <div class="px-4 py-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20 text-center"><span class="block text-2xl font-bold text-white">3D</span><span class="text-[10px] uppercase tracking-widest text-yellow-400">Spatial Map</span></div>
+            <!-- CASE STUDY 1 -->
+            <div class="max-w-6xl mx-auto mb-24">
+                <div class="cyber-card p-10 bg-slate-900/50 border-blue-500/20">
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 border-b border-white/5 pb-8">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">Log #001</span>
+                                <span class="text-slate-500 text-xs font-mono uppercase">Transportation & Logistics</span>
                             </div>
+                            <h2 class="text-3xl md:text-4xl font-black uppercase text-white">NYC Green Taxi <span class="text-blue-500">Estimator</span></h2>
                         </div>
-                        <div class="space-y-8">
-                            <h3 class="text-xl font-bold text-white uppercase tracking-tight">System Evolution</h3>
-                            <div class="timeline-node">
-                                <div class="mb-1 text-xs font-mono text-emerald-500 uppercase tracking-widest">Phase 1: Discovery</div>
-                                <h4 class="text-lg font-bold text-slate-200">Data Auditing & Decoding</h4>
-                                <p class="text-sm text-slate-400 mt-2 leading-relaxed">Ingested `Green_Data.csv` and implemented automated audit protocols. Decoded cryptic RateCodeIDs (e.g., JFK Airport zones) and visualized distribution skews to establish a clean baseline.</p>
-                            </div>
-                            <div class="timeline-node">
-                                <div class="mb-1 text-xs font-mono text-purple-500 uppercase tracking-widest">Phase 2: The Science</div>
-                                <h4 class="text-lg font-bold text-slate-200">Feature Engineering & XGBoost</h4>
-                                <p class="text-sm text-slate-400 mt-2 leading-relaxed">Extracted complex temporal metrics. Comparative testing between Linear Regression and Decision Trees revealed <strong class="text-white">XGBoost</strong> as the champion for non-linear pattern recognition.</p>
-                            </div>
-                            <div class="timeline-node">
-                                <div class="mb-1 text-xs font-mono text-blue-500 uppercase tracking-widest">Phase 3: Architecture</div>
-                                <h4 class="text-lg font-bold text-slate-200">Logic Layer Implementation</h4>
-                                <p class="text-sm text-slate-400 mt-2 leading-relaxed">Constructed the bridge between user inputs and the model matrix. Implemented Haversine formulas for geospatial distance calculation and traffic logic simulators.</p>
-                            </div>
-                            <div class="timeline-node">
-                                <div class="mb-1 text-xs font-mono text-yellow-500 uppercase tracking-widest">Phase 4: UX V7.0</div>
-                                <h4 class="text-lg font-bold text-slate-200">3D Visualization & Insights</h4>
-                                <p class="text-sm text-slate-400 mt-2 leading-relaxed">Final production release featuring PyDeck 3D Arc Layers for glowing path visualization over a pitch-black map. Replaced raw coordinates with smart landmark selectors.</p>
-                            </div>
+                        <div class="flex gap-2">
+                            <span class="stack-badge text-white bg-blue-600/20 border-blue-500/30">Python 3.9</span>
+                            <span class="stack-badge text-white bg-blue-600/20 border-blue-500/30">XGBoost</span>
+                            <span class="stack-badge text-white bg-blue-600/20 border-blue-500/30">PyDeck 3D</span>
                         </div>
                     </div>
-                    <div class="space-y-8">
-                        <div class="cyber-card p-6">
-                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Tech Stack</h4>
-                            <div class="flex flex-wrap gap-2"><span class="stack-badge text-white bg-blue-600/20 border-blue-500/30">Python 3.9</span><span class="stack-badge">XGBoost</span><span class="stack-badge">PyDeck 3D</span><span class="stack-badge">Streamlit</span></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div class="lg:col-span-2 space-y-8">
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-2 uppercase tracking-tight flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-rose-500"></i> The Challenge</h3>
+                                <p class="text-slate-400 text-sm leading-relaxed">
+                                    New York City's transit system generates millions of data points daily, yet predicting accurate fares is plagued by volatility due to traffic congestion, borough-specific surcharges, and time-of-day variance. The goal was to build a model robust enough to predict fares within a 5% margin of error using only trip metadata.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-2 uppercase tracking-tight flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-emerald-500"></i> The Solution</h3>
+                                <p class="text-slate-400 text-sm leading-relaxed">
+                                    I engineered an ensemble pipeline centered around <strong>XGBoost</strong>, chosen for its gradient boosting capabilities on structured data. Feature engineering included extracting <code>trip_distance</code> (Haversine formula), temporal cyclical features (hour/day), and decoding complex RateCodeIDs. The front-end uses PyDeck to render 3D arc layers, visualizing high-traffic corridors in real-time.
+                                </p>
+                            </div>
                         </div>
-                        <a href="https://app-rcrknxzyxrit5emlknw4wm.streamlit.app/#nyc-smart-taxi-predictor" target="_blank" class="w-full py-4 bg-emerald-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-700 block shadow-lg mb-3">Launch v7.0 App</a>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="metric-badge">
+                                <span class="metric-value text-blue-400">97%</span>
+                                <span class="metric-label">R² Accuracy Score</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-emerald-400">100k+</span>
+                                <span class="metric-label">Records Processed</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-amber-400">0.4s</span>
+                                <span class="metric-label">Inference Latency</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-rose-400">3D</span>
+                                <span class="metric-label">Spatial Mapping</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t border-white/5">
+                        <a href="https://app-rcrknxzyxrit5emlknw4wm.streamlit.app/#nyc-smart-taxi-predictor" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-bold text-blue-400 hover:text-white transition-colors uppercase tracking-widest">
+                            Initialize Deployment <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- DIVIDER -->
-            <div class="max-w-7xl mx-auto my-32"><div class="h-px w-full bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div></div>
-
-            <!-- CASE STUDY 2: CINEMATCH -->
-            <div class="max-w-6xl mx-auto space-y-12">
-                <div class="space-y-4 border-b border-white/10 pb-8">
-                    <div class="flex items-center gap-4">
-                        <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-full">Case Study 02</span>
+            <!-- CASE STUDY 2 -->
+            <div class="max-w-6xl mx-auto">
+                <div class="cyber-card p-10 bg-slate-900/50 border-indigo-500/20">
+                    <div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 border-b border-white/5 pb-8">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-indigo-500/20">Log #002</span>
+                                <span class="text-slate-500 text-xs font-mono uppercase">Media & Entertainment</span>
+                            </div>
+                            <h2 class="text-3xl md:text-4xl font-black uppercase text-white">CineMatch <span class="text-indigo-500">Engine</span></h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="stack-badge text-white bg-indigo-600/20 border-indigo-500/30">Scikit-Learn</span>
+                            <span class="stack-badge text-white bg-indigo-600/20 border-indigo-500/30">NLP</span>
+                            <span class="stack-badge text-white bg-indigo-600/20 border-indigo-500/30">Vectorization</span>
+                        </div>
                     </div>
-                    <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter">CineMatch <span class="text-indigo-500">Engine</span></h1>
-                    <p class="text-lg text-slate-400 font-light max-w-3xl">The Evolution of a Recommender. From a data science notebook to a production-hardened web application.</p>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div class="lg:col-span-2 space-y-12">
-                        <div class="cyber-card p-8 bg-indigo-900/5 border-indigo-500/20">
-                            <h3 class="text-xl font-bold mb-4 text-white uppercase tracking-tight"><i data-lucide="target" class="inline-block w-5 h-5 mr-2 text-indigo-400"></i>Mission Directive</h3>
-                            <p class="text-slate-400 leading-relaxed mb-6 text-sm">
-                                The goal was to build a content-based filtering system that suggests movies based on shared metadata. The challenge wasn't just the algorithm, but evolving it into a visual, interactive product that could withstand real-world API limitations.
-                            </p>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div class="px-4 py-3 bg-indigo-500/10 rounded-lg border border-indigo-500/20 text-center"><span class="block text-2xl font-bold text-white">5000+</span><span class="text-[10px] uppercase tracking-widest text-indigo-400">Movies</span></div>
-                                <div class="px-4 py-3 bg-purple-500/10 rounded-lg border border-purple-500/20 text-center"><span class="block text-2xl font-bold text-white">Cosine</span><span class="text-[10px] uppercase tracking-widest text-purple-400">Similarity</span></div>
-                                <div class="px-4 py-3 bg-blue-500/10 rounded-lg border border-blue-500/20 text-center"><span class="block text-2xl font-bold text-white">8+2</span><span class="text-[10px] uppercase tracking-widest text-blue-400">Recs + Wildcards</span></div>
-                                <div class="px-4 py-3 bg-pink-500/10 rounded-lg border border-pink-500/20 text-center"><span class="block text-2xl font-bold text-white">V8.0</span><span class="text-[10px] uppercase tracking-widest text-pink-400">Production</span></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div class="lg:col-span-2 space-y-8">
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-2 uppercase tracking-tight flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-rose-500"></i> The Challenge</h3>
+                                <p class="text-slate-400 text-sm leading-relaxed">
+                                    Standard collaborative filtering fails with "Cold Start" problems for new users or niche content. The objective was to create a content-based recommendation system that understands the <em>context</em> of a film (plot, genre, cast) rather than just user ratings, ensuring 100% coverage of the database.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white mb-2 uppercase tracking-tight flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4 text-emerald-500"></i> The Solution</h3>
+                                <p class="text-slate-400 text-sm leading-relaxed">
+                                    I implemented a <strong>Vector Space Model</strong> using TF-IDF (Term Frequency-Inverse Document Frequency) to convert textual metadata into 5000-dimensional vectors. Recommendations are generated via <strong>Cosine Similarity</strong> matrices, measuring the angular distance between movies. The system was optimized by pre-computing the similarity matrix, reducing runtime complexity from O(N²) to O(1) for lookups.
+                                </p>
                             </div>
                         </div>
-                        <div class="space-y-8">
-                            <h3 class="text-xl font-bold text-white uppercase tracking-tight">Full Engineering Timeline</h3>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-indigo-500 uppercase tracking-widest">Phase 1: The Blueprint</div><h4 class="text-lg font-bold text-slate-200">Data Science Backend</h4><p class="text-sm text-slate-400 mt-2">Transformed raw TMDB CSVs into a clean DataFrame. Engineered `tags` by combining overview, cast, crew, and genres.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-blue-500 uppercase tracking-widest">Phase 2: Prototype</div><h4 class="text-lg font-bold text-slate-200">Proof of Concept</h4><p class="text-sm text-slate-400 mt-2">Established core logic validity. Proved 5,000+ vector comparisons could be performed in real-time.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-purple-500 uppercase tracking-widest">Phase 3: Visuals</div><h4 class="text-lg font-bold text-slate-200">API Integration & UX</h4><p class="text-sm text-slate-400 mt-2">Upgraded to a rich grid of posters. Injected custom CSS for dark mode and added 3D cards.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-red-500 uppercase tracking-widest">Phase 4: Crisis</div><h4 class="text-lg font-bold text-slate-200">System Critical Failure</h4><p class="text-sm text-slate-400 mt-2">Cloud deployment triggered <code>ConnectionResetError</code>. Server-side API calls blocked by host.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-emerald-500 uppercase tracking-widest">Phase 5: The Pivot</div><h4 class="text-lg font-bold text-slate-200">Pipeline Re-Architecture</h4><p class="text-sm text-slate-400 mt-2">Pre-computed image paths in backend. Forces client browser to fetch images directly.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-indigo-400 uppercase tracking-widest">Phase 6: Refinement</div><h4 class="text-lg font-bold text-slate-200">Algorithm Expansion</h4><p class="text-sm text-slate-400 mt-2">Added "Wildcard" slots to break filter bubbles. Fixed entity errors via Regex.</p></div>
-                            <div class="timeline-node"><div class="mb-1 text-xs font-mono text-green-500 uppercase tracking-widest">Phase 8: Hardening</div><h4 class="text-lg font-bold text-slate-200">Hybrid Rendering</h4><p class="text-sm text-slate-400 mt-2">Implemented custom HTML/CSS for stable modals. Solved "Zombie Process" by refactoring entry point.</p></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="metric-badge">
+                                <span class="metric-value text-indigo-400">5k+</span>
+                                <span class="metric-label">Vector Dimensions</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-emerald-400">O(1)</span>
+                                <span class="metric-label">Lookup Complexity</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-pink-400">100%</span>
+                                <span class="metric-label">Database Coverage</span>
+                            </div>
+                            <div class="metric-badge">
+                                <span class="metric-value text-blue-400">V8.0</span>
+                                <span class="metric-label">Production Build</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="space-y-8">
-                        <div class="cyber-card p-6">
-                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Tech Stack</h4>
-                            <div class="flex flex-wrap gap-2"><span class="stack-badge text-white bg-indigo-600/20 border-indigo-500/30">Python</span><span class="stack-badge">Streamlit</span><span class="stack-badge">Scikit-Learn</span><span class="stack-badge">Pandas</span></div>
-                        </div>
-                        <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" class="w-full py-4 bg-indigo-600 text-white text-center rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-700 block shadow-lg mb-3">Launch Engine</a>
+                    <div class="mt-8 pt-8 border-t border-white/5">
+                        <a href="https://appmovierecommendersystem-hjvbxvxhx3ywwljbqy9bof.streamlit.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 hover:text-white transition-colors uppercase tracking-widest">
+                            Initialize Deployment <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -801,8 +876,8 @@
                 <p class="text-xl text-slate-400 max-w-2xl mx-auto mb-12">I am currently accepting new contracts for Data Science and AI Development projects.</p>
                 <div class="flex flex-wrap justify-center gap-8 mt-12">
                     <a href="mailto:rudresh.chovatiya@gmail.com" class="group relative px-8 py-4 bg-white text-slate-900 rounded-xl font-bold uppercase tracking-widest hover:bg-blue-50 transition-all"><i data-lucide="mail" class="w-5 h-5 inline mr-2"></i> Email Me</a>
-                    <a href="https://www.linkedin.com/in/rudreshkumar-chovatiya" target="_blank" class="group relative px-8 py-4 bg-blue-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-blue-700 transition-all"><i data-lucide="linkedin" class="w-5 h-5 inline mr-2"></i> LinkedIn</a>
-                    <a href="https://wa.me/917016236850" target="_blank" class="group relative px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all"><i data-lucide="message-circle" class="w-5 h-5 inline mr-2"></i> WhatsApp</a>
+                    <a href="https://www.linkedin.com/in/rudreshkumar-chovatiya" target="_blank" rel="noopener noreferrer" class="group relative px-8 py-4 bg-blue-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-blue-700 transition-all"><i data-lucide="linkedin" class="w-5 h-5 inline mr-2"></i> LinkedIn</a>
+                    <a href="https://wa.me/917016236850" target="_blank" rel="noopener noreferrer" class="group relative px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all"><i data-lucide="message-circle" class="w-5 h-5 inline mr-2"></i> WhatsApp</a>
                 </div>
             </div>
             
@@ -843,7 +918,19 @@
     </footer>
 
     <script>
-        // Router Logic
+        // --- MOBILE MENU LOGIC ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('closed')) {
+                menu.classList.remove('closed');
+                menu.classList.add('open');
+            } else {
+                menu.classList.remove('open');
+                menu.classList.add('closed');
+            }
+        }
+
+        // Router Logic (Updated to close mobile menu)
         function router(pageId) {
             document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
             const target = document.getElementById('page-' + pageId);
@@ -853,6 +940,12 @@
                 link.classList.remove('active-link');
                 if(link.getAttribute('onclick').includes(pageId)) link.classList.add('active-link');
             });
+            
+            // Close mobile menu if open
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('open')) {
+                toggleMobileMenu();
+            }
         }
 
         // Toggle Audio Logic
@@ -874,47 +967,85 @@
             lucide.createIcons();
             router('home');
 
+            // --- AUDIO AUTOPLAY WORKAROUND ---
+            // 1. We remove 'muted' in HTML, so browser blocks autoplay.
+            // 2. We add a listener for the FIRST user interaction (click/scroll).
+            // 3. We trigger play() and show a toast.
+            const video = document.getElementById('preview-video-1');
+            const soundToast = document.getElementById('sound-toast');
+            let hasInteracted = false;
+
+            function enableSound() {
+                if (!hasInteracted && video) {
+                    video.muted = false;
+                    video.play().then(() => {
+                        hasInteracted = true;
+                        // Show toast
+                        soundToast.classList.add('active');
+                        setTimeout(() => {
+                            soundToast.classList.remove('active');
+                        }, 3000);
+                        
+                        // Update icon
+                        const btn = document.querySelector('button[onclick*="toggleAudio"] i');
+                        if(btn) {
+                            btn.setAttribute('data-lucide', 'volume-2');
+                            lucide.createIcons();
+                        }
+                    }).catch(e => console.log("Audio play blocked until interaction"));
+                }
+            }
+
+            // Listen for any interaction on the document
+            document.addEventListener('click', enableSound, { once: true });
+            document.addEventListener('scroll', enableSound, { once: true });
+
+
             // --- NEURAL BACKGROUND ---
             const canvas = document.getElementById('neural-canvas');
-            const ctx = canvas.getContext('2d');
-            let w, h, particles = [];
-            let mouse = { x: -500, y: -500 };
-            function init() {
-                w = canvas.width = window.innerWidth;
-                h = canvas.height = window.innerHeight;
-                particles = [];
-                for (let i = 0; i < Math.floor((w * h) / 9000); i++) {
-                    particles.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, size: Math.random() * 2 + 1, h: Math.random() > 0.6 ? 215 : 155 });
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let w, h, particles = [];
+                let mouse = { x: -500, y: -500 };
+                function init() {
+                    w = canvas.width = window.innerWidth;
+                    h = canvas.height = window.innerHeight;
+                    particles = [];
+                    // Slight optimization: limit particles on small screens
+                    const density = window.innerWidth < 768 ? 12000 : 9000;
+                    for (let i = 0; i < Math.floor((w * h) / density); i++) {
+                        particles.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, size: Math.random() * 2 + 1, h: Math.random() > 0.6 ? 215 : 155 });
+                    }
                 }
-            }
-            window.addEventListener('resize', init);
-            window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-            function draw() {
-                ctx.clearRect(0, 0, w, h);
-                ctx.lineWidth = 0.8;
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dist = Math.sqrt((particles[i].x - particles[j].x)**2 + (particles[i].y - particles[j].y)**2);
-                        if (dist < 150) {
-                            ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - dist/150)})`;
-                            ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                window.addEventListener('resize', init);
+                window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+                function draw() {
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.lineWidth = 0.8;
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dist = Math.sqrt((particles[i].x - particles[j].x)**2 + (particles[i].y - particles[j].y)**2);
+                            if (dist < 150) {
+                                ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - dist/150)})`;
+                                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                            }
                         }
                     }
+                    particles.forEach(p => {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < 0 || p.x > w) p.vx *= -1; if (p.y < 0 || p.y > h) p.vy *= -1;
+                        const md = Math.sqrt((mouse.x - p.x)**2 + (mouse.y - p.y)**2);
+                        if (md < 300) {
+                            ctx.strokeStyle = `rgba(59, 130, 246, ${0.3 * (1 - md/300)})`;
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
+                        }
+                        ctx.fillStyle = `hsla(${p.h}, 80%, 65%, 0.65)`;
+                        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                    });
+                    requestAnimationFrame(draw);
                 }
-                particles.forEach(p => {
-                    p.x += p.vx; p.y += p.vy;
-                    if (p.x < 0 || p.x > w) p.vx *= -1; if (p.y < 0 || p.y > h) p.vy *= -1;
-                    const md = Math.sqrt((mouse.x - p.x)**2 + (mouse.y - p.y)**2);
-                    if (md < 300) {
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.3 * (1 - md/300)})`;
-                        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
-                    }
-                    ctx.fillStyle = `hsla(${p.h}, 80%, 65%, 0.65)`;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-                });
-                requestAnimationFrame(draw);
+                init(); draw();
             }
-            init(); draw();
         });
     </script>
 </body>
