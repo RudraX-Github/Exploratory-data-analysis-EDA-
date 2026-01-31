@@ -177,7 +177,7 @@
             bottom: 30px; 
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
+            width: 95%; /* Wider to prevent wrapping if possible */
             text-align: center;
             z-index: 10;
             pointer-events: none;
@@ -185,24 +185,25 @@
             justify-content: center;
         }
         .subtitle-text {
-            background: rgba(0, 0, 0, 0.6);
+            /* REMOVED background box as requested ("not entire box") */
+            /* background: rgba(0, 0, 0, 0.6); */
             color: rgba(255, 255, 255, 0.95);
             padding: 10px 20px;
-            border-radius: 12px;
+            /* border-radius: 12px; */
             font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 500;
-            backdrop-filter: blur(8px);
+            font-size: 0.9rem; /* Slightly larger for readability without box */
+            font-weight: 600;
+            /* backdrop-filter: blur(8px); */
             display: inline-block;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            animation: fadeInCC 1s ease-out 0.5s forwards;
-            opacity: 0;
-            transform: translateY(10px);
+            /* box-shadow: 0 8px 16px rgba(0,0,0,0.3); */
+            /* border: 1px solid rgba(255,255,255,0.1); */
+            /* Added text shadow for contrast against video */
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 1px 2px rgba(0,0,0,0.8);
         }
-        @keyframes fadeInCC {
-            to { opacity: 1; transform: translateY(0); }
+        
+        .word-span {
+            display: inline-block;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -350,9 +351,9 @@
                         </video>
                         <div class="infinity-scanline"></div>
                         
-                        <!-- Closed Captions (CC) Overlay -->
+                        <!-- Closed Captions (CC) Overlay - Dynamic ID Added -->
                         <div class="subtitle-overlay">
-                            <div class="subtitle-text">When ambition meets reliability, the future becomes achievable.</div>
+                            <div id="dynamic-subtitle" class="subtitle-text"></div>
                         </div>
 
                         <!-- Audio Toggle Button -->
@@ -1094,6 +1095,50 @@
             ['click', 'keydown', 'touchstart', 'mousedown', 'wheel'].forEach(evt => {
                 document.addEventListener(evt, enableSound, { passive: true });
             });
+
+            // --- DYNAMIC SUBTITLES SYNC ---
+            const subtitles = [
+                { text: "When", time: 0.2 },
+                { text: "ambition", time: 0.6 },
+                { text: "meets", time: 1.2 },
+                { text: "reliability,", time: 1.8 },
+                { text: "the", time: 2.5 },
+                { text: "future", time: 2.8 },
+                { text: "becomes", time: 3.3 },
+                { text: "achievable.", time: 3.8 },
+                { text: "Let's", time: 4.8 }, // Pause after sentence
+                { text: "build", time: 5.1 },
+                { text: "it", time: 5.4 },
+                { text: "together.", time: 5.7 }
+            ];
+
+            const subContainer = document.getElementById('dynamic-subtitle');
+            if (subContainer) {
+                // Create spans
+                subContainer.innerHTML = subtitles.map(s => 
+                    `<span class="word-span opacity-0 translate-y-2 inline-block mr-1 text-slate-400 font-bold transition-all duration-300 ease-out">${s.text}</span>`
+                ).join('');
+                
+                const words = subContainer.querySelectorAll('.word-span');
+                
+                video.addEventListener('timeupdate', () => {
+                    const t = video.currentTime;
+                    // Reset if video looped (time < last word time substantially)
+                    if (t < 0.1) {
+                        words.forEach(w => {
+                            w.classList.remove('opacity-100', 'translate-y-0', 'text-white', 'scale-105');
+                            w.classList.add('opacity-0', 'translate-y-2', 'text-slate-400');
+                        });
+                    }
+
+                    subtitles.forEach((sub, i) => {
+                        if (t >= sub.time) {
+                            words[i].classList.remove('opacity-0', 'translate-y-2', 'text-slate-400');
+                            words[i].classList.add('opacity-100', 'translate-y-0', 'text-white');
+                        }
+                    });
+                });
+            }
 
 
             // --- NEURAL BACKGROUND ---
