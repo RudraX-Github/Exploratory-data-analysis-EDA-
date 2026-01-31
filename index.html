@@ -171,6 +171,40 @@
         }
         @keyframes sweep { 0% { transform: translateY(-100%); } 100% { transform: translateY(1000%); } }
 
+        /* Subtitle Overlay (CC) */
+        .subtitle-overlay {
+            position: absolute;
+            bottom: 30px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+        }
+        .subtitle-text {
+            background: rgba(0, 0, 0, 0.6);
+            color: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+            display: inline-block;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            animation: fadeInCC 1s ease-out 0.5s forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        @keyframes fadeInCC {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-deep); }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -308,17 +342,22 @@
                 <div class="relative">
                     <div class="infinity-container">
                         <!-- 
-                            UPDATE: Removed 'muted'. 
-                            Browser policy prevents autoplay w/ sound without interaction.
-                            Workaround implemented in JS: Wait for first interaction then play.
+                            FIX: Re-added 'muted' to ensure visual autoplay happens instantly. 
+                            The script below will unmute on interaction.
                         -->
-                        <video id="preview-video-1" class="media-infinity smart-video shadow-[0_0_80px_rgba(0,0,0,0.8)]" playsinline loop>
+                        <video id="preview-video-1" class="media-infinity smart-video shadow-[0_0_80px_rgba(0,0,0,0.8)]" playsinline loop autoplay muted>
                             <source src="https://raw.githubusercontent.com/RudraX-Github/Portfolio-Page/main/Visuals/Tagline.mp4" type="video/mp4">
                         </video>
                         <div class="infinity-scanline"></div>
+                        
+                        <!-- Closed Captions (CC) Overlay -->
+                        <div class="subtitle-overlay">
+                            <div class="subtitle-text">When ambition meets reliability, the future becomes achievable.</div>
+                        </div>
+
                         <!-- Audio Toggle Button -->
                         <button onclick="toggleAudio('preview-video-1', this)" class="absolute bottom-6 right-6 z-20 p-3 bg-slate-900/80 rounded-full text-white hover:bg-blue-600 transition-colors border border-white/10">
-                            <!-- Initial icon will be volume-x because video starts muted/paused technically -->
+                            <!-- Initial icon matches muted state -->
                             <i data-lucide="volume-x" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -946,6 +985,18 @@
             if (menu.classList.contains('open')) {
                 toggleMobileMenu();
             }
+
+            // Video Playback Logic: Only play on 'home', pause elsewhere
+            const video = document.getElementById('preview-video-1');
+            if (video) {
+                if (pageId === 'home') {
+                    // Attempt to play. Might be blocked if unmuted & no interaction yet, 
+                    // but 'autoplay muted' in HTML handles the initial load case.
+                    video.play().catch(e => console.log("Video resume waiting for interaction"));
+                } else {
+                    video.pause();
+                }
+            }
         }
 
         // Toggle Audio Logic
@@ -967,38 +1018,82 @@
             lucide.createIcons();
             router('home');
 
-            // --- AUDIO AUTOPLAY WORKAROUND ---
-            // 1. We remove 'muted' in HTML, so browser blocks autoplay.
-            // 2. We add a listener for the FIRST user interaction (click/scroll).
-            // 3. We trigger play() and show a toast.
+            // Set initial state of volume icon based on actual video state
             const video = document.getElementById('preview-video-1');
-            const soundToast = document.getElementById('sound-toast');
-            let hasInteracted = false;
+            const btn = document.querySelector('button[onclick*="toggleAudio"] i');
+            if(video && btn) {
+                if(video.muted) {
+                    btn.setAttribute('data-lucide', 'volume-x');
+                } else {
+                    btn.setAttribute('data-lucide', 'volume-2');
+                }
+                lucide.createIcons();
+            }
 
-            function enableSound() {
-                if (!hasInteracted && video) {
-                    video.muted = false;
-                    video.play().then(() => {
-                        hasInteracted = true;
-                        // Show toast
-                        soundToast.classList.add('active');
-                        setTimeout(() => {
-                            soundToast.classList.remove('active');
-                        }, 3000);
+
+            // --- AUDIO AUTOPLAY WORKAROUND ---
+            const soundToast = document.getElementById('sound-toast');
+            let audioState = 'off'; // 'off', 'trying', 'on'
+
+            function enableSound(e) {
+                // If already on, or currently trying to turn on, stop.
+                if (audioState === 'on' || audioState === 'trying' || !video) return;
+
+                // Mark as trying to prevent spamming play() on every wheel tick
+                audioState = 'trying';
+
+                // Try to unmute and play
+                video.muted = false;
+                
+                // We use a promise to handle success/failure
+                const playPromise = video.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // SUCCESS: Audio is playing
+                        audioState = 'on';
                         
-                        // Update icon
+                        // Visual feedback
+                        soundToast.classList.add('active');
+                        setTimeout(() => soundToast.classList.remove('active'), 3000);
+                        
                         const btn = document.querySelector('button[onclick*="toggleAudio"] i');
                         if(btn) {
                             btn.setAttribute('data-lucide', 'volume-2');
                             lucide.createIcons();
                         }
-                    }).catch(e => console.log("Audio play blocked until interaction"));
+
+                        // Cleanup listeners
+                        cleanupListeners();
+                    }).catch(error => {
+                        // FAIL: Browser prevented unmuted playback. 
+                        // Reset state so we can try again on next different interaction
+                        audioState = 'off';
+                        
+                        // Ensure video stays muted so it can potentially keep playing visually (if desired)
+                        // Or just leave it; the promise rejection usually stops playback if not muted.
+                        // We'll reset mute to avoid error states if the browser is picky.
+                        video.muted = true;
+                        video.play().catch(() => {}); // Attempt to at least play muted
+                        
+                        // console.log("Audio autoplay restricted. Waiting for stronger user interaction.");
+                    });
                 }
             }
 
-            // Listen for any interaction on the document
-            document.addEventListener('click', enableSound, { once: true });
-            document.addEventListener('scroll', enableSound, { once: true });
+            function cleanupListeners() {
+                // Remove all potential triggers
+                ['click', 'keydown', 'touchstart', 'interaction', 'mousedown', 'wheel'].forEach(evt => {
+                    document.removeEventListener(evt, enableSound);
+                });
+            }
+
+            // Attach listeners. 
+            // Note: 'wheel' and 'scroll' are rarely trusted for audio, but included for edge cases.
+            // 'mousedown' covers scrollbar interactions. 'keydown' covers arrow keys.
+            ['click', 'keydown', 'touchstart', 'mousedown', 'wheel'].forEach(evt => {
+                document.addEventListener(evt, enableSound, { passive: true });
+            });
 
 
             // --- NEURAL BACKGROUND ---
